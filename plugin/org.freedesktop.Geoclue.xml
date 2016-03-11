@@ -1,0 +1,21 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.Geoclue">
+    <method name="RemoveReference"/>
+    <method name="AddReference"/>
+    <method name="SetOptions">
+      <arg name="options" type="a{sv}" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+    <method name="GetStatus">
+      <arg name="status" type="i" direction="out"/>
+    </method>
+    <method name="GetProviderInfo">
+      <arg name="Name" type="s" direction="out"/>
+      <arg name="Description" type="s" direction="out"/>
+    </method>
+    <signal name="StatusChanged">
+      <arg type="i"/>
+    </signal>
+  </interface>
+</node>

@@ -1,0 +1,23 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.Geoclue.Position">
+    <method name="GetPosition">
+      <arg name="fields" type="i" direction="out"/>
+      <arg name="timestamp" type="i" direction="out"/>
+      <arg name="latitude" type="d" direction="out"/>
+      <arg name="longitude" type="d" direction="out"/>
+      <arg name="altitude" type="d" direction="out"/>
+      <arg name="accuracy" type="(idd)" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out5" value="Accuracy"/>
+    </method>
+    <signal name="PositionChanged">
+      <arg type="i" name="fields"/>
+      <arg type="i" name="timestamp"/>
+      <arg type="d" name="latitude"/>
+      <arg type="d" name="longitude"/>
+      <arg type="d" name="altitude"/>
+      <arg type="(idd)" name="accuracy"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In5" value="Accuracy"/>
+    </signal>
+  </interface>
+</node>

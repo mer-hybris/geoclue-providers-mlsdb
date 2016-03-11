@@ -1,0 +1,8 @@
+[Geoclue Provider]
+Name=MLSDB Provider
+Service=org.freedesktop.Geoclue.Providers.Mlsdb
+Path=/org/freedesktop/Geoclue/Providers/Mlsdb
+Interfaces=org.freedesktop.Geoclue.Position
+Provides=ProvidesUpdates
+Accuracy=Postalcode
+Requires=RequiresCell
