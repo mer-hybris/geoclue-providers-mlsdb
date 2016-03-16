@@ -42,6 +42,7 @@ BuildRequires: pkgconfig(android-headers)
 */
 
 QT_FORWARD_DECLARE_CLASS(QDBusServiceWatcher)
+class QOfonoExtCellWatcher;
 class QOfonoExtModemManager;
 class QOfonoNetworkRegistration;
 
@@ -132,7 +133,7 @@ private:
         quint32 cellId;
         quint32 signalStrength;
     };
-    QList<CellPositioningData> m_neighboringCells;
+    QOfonoExtCellWatcher *m_cellWatcher;
     QOfonoExtModemManager *m_modemManager;
     QMap<QString, QOfonoNetworkRegistration*> m_networkRegistrations; // modem path to network registration
     QMap<quint32, MlsdbCoords> m_cellIdToLocation;

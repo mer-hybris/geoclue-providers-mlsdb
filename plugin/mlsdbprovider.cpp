@@ -17,6 +17,8 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QFile>
+#include <QtCore/QSharedPointer>
+#include <QtCore/QList>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
@@ -26,6 +28,8 @@
 #include <qofonomanager.h>
 #include <qofononetworkregistration.h>
 #include <qofonoextmodemmanager.h>
+#include <qofonoextcellwatcher.h>
+#include <qofonoextcell.h>
 
 #include <strings.h>
 #include <sys/time.h>
@@ -71,6 +75,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
 :   QObject(parent),
     m_positioningStarted(false),
     m_status(StatusUnavailable),
+    m_cellWatcher(new QOfonoExtCellWatcher(this)),
     m_modemManager(new QOfonoExtModemManager(this))
 {
     if (staticProvider)
@@ -263,17 +268,34 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 
 void MlsdbProvider::calculatePositionAndEmitLocation()
 {
-    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_networkRegistrations.count() << "network registrations";
-
-    QList<CellPositioningData> cells = m_neighboringCells;
+    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_networkRegistrations.count() << "network registrations and" << m_cellWatcher->cells().size() << "neighbouring cells";
+    QList<CellPositioningData> cells;
     quint32 maxNeighborSignalStrength = 1;
-    Q_FOREACH (const CellPositioningData &cell, cells) {
-        if (cell.signalStrength > maxNeighborSignalStrength) {
-            // used for the cell towers we're connected to.
-            // if no signal strength data is available from ofono,
-            // we assume they're at least as strong signals as the
-            // strongest of our neighbor cells.
-            maxNeighborSignalStrength = cell.signalStrength;
+    QSet<quint32> seenCellIds;
+    Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
+        CellPositioningData cell;
+        if (c->cid() != -1 && c->cid() != 0) {
+            // gsm / wcdma
+            cell.cellId = c->cid();
+        } else if (c->ci() != -1 && c->ci() != 0) {
+            // lte
+            cell.cellId = c->ci();
+        } else {
+            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id:" << c->type() << c->mcc() << c->mnc();
+            continue; // no cell id.
+        }
+        if (!seenCellIds.contains(cell.cellId)) {
+            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.cellId << "with strength:" << c->signalStrength();
+            cell.signalStrength = c->signalStrength();
+            if (cell.signalStrength > maxNeighborSignalStrength) {
+                // used for the cell towers we're connected to.
+                // if no signal strength data is available from ofono,
+                // we assume they're at least as strong signals as the
+                // strongest of our neighbor cells.
+                maxNeighborSignalStrength = cell.signalStrength;
+            }
+            cells.append(cell);
+            seenCellIds.insert(cell.cellId);
         }
     }
 
@@ -394,7 +416,6 @@ void MlsdbProvider::locationEnabledChanged()
 void MlsdbProvider::cellularNetworkRegistrationChanged()
 {
     qCDebug(lcGeoclueMlsdb);
-    // TODO: call RIL_REQUEST_GET_NEIGHBORING_CELL_IDS and populate m_neighboringCells.
     calculatePositionAndEmitLocation();
 }
 
