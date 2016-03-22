@@ -43,8 +43,6 @@ BuildRequires: pkgconfig(android-headers)
 
 QT_FORWARD_DECLARE_CLASS(QDBusServiceWatcher)
 class QOfonoExtCellWatcher;
-class QOfonoExtModemManager;
-class QOfonoNetworkRegistration;
 
 /*
  * The geoclue-mlsdb provider provides position information
@@ -104,12 +102,10 @@ signals:
     void PositionChanged(int fields, int timestamp, double latitude, double longitude, double altitude, const Accuracy &accuracy);
 
 private Q_SLOTS:
-    void modemManagerValidChanged();
     void setLocation(const Location &location);
     void serviceUnregistered(const QString &service);
     void locationEnabledChanged();
     void cellularNetworkRegistrationChanged();
-    void enabledModemsChanged(const QStringList &enabledModems);
 
 protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE; // QObject
@@ -134,8 +130,6 @@ private:
         quint32 signalStrength;
     };
     QOfonoExtCellWatcher *m_cellWatcher;
-    QOfonoExtModemManager *m_modemManager;
-    QMap<QString, QOfonoNetworkRegistration*> m_networkRegistrations; // modem path to network registration
     QMap<quint32, MlsdbCoords> m_cellIdToLocation;
 
     QDBusServiceWatcher *m_watcher;
