@@ -22,14 +22,7 @@
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
-#include <networkmanager.h>
-#include <networkservice.h>
-
-#include <qofonomanager.h>
-#include <qofononetworkregistration.h>
-#include <qofonoextmodemmanager.h>
 #include <qofonoextcellwatcher.h>
-#include <qofonoextcell.h>
 
 #include <strings.h>
 #include <sys/time.h>
@@ -75,8 +68,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
 :   QObject(parent),
     m_positioningStarted(false),
     m_status(StatusUnavailable),
-    m_cellWatcher(new QOfonoExtCellWatcher(this)),
-    m_modemManager(new QOfonoExtModemManager(this))
+    m_cellWatcher(new QOfonoExtCellWatcher(this))
 {
     if (staticProvider)
         qFatal("Only a single instance of MlsdbProvider is supported.");
@@ -100,12 +92,10 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     connect(m_watcher, &QDBusServiceWatcher::serviceUnregistered,
             this, &MlsdbProvider::serviceUnregistered);
 
-    connect(m_modemManager, &QOfonoExtModemManager::enabledModemsChanged,
-            this, &MlsdbProvider::enabledModemsChanged);
-    connect(m_modemManager, &QOfonoExtModemManager::validChanged,
-            this, &MlsdbProvider::modemManagerValidChanged);
+    connect(m_cellWatcher, &QOfonoExtCellWatcher::cellsChanged,
+            this, &MlsdbProvider::cellularNetworkRegistrationChanged);
 
-    modemManagerValidChanged();
+    cellularNetworkRegistrationChanged();
 }
 
 MlsdbProvider::~MlsdbProvider()
@@ -146,14 +136,6 @@ void MlsdbProvider::populateCellIdToLocationMap()
         qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contained no cell tower locations!";
     } else {
         qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contains" << m_cellIdToLocation.size() << "cell tower locations.";
-    }
-}
-
-void MlsdbProvider::modemManagerValidChanged()
-{
-    if (m_modemManager->valid()) {
-        qCDebug(lcGeoclueMlsdb) << "modem manager valid, have enabled modems:" << m_modemManager->enabledModems() << ", available modems:" << m_modemManager->availableModems();
-        enabledModemsChanged(m_modemManager->enabledModems());
     }
 }
 
@@ -268,7 +250,7 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 
 void MlsdbProvider::calculatePositionAndEmitLocation()
 {
-    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_networkRegistrations.count() << "network registrations and" << m_cellWatcher->cells().size() << "neighbouring cells";
+    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
     quint32 maxNeighborSignalStrength = 1;
     QSet<quint32> seenCellIds;
@@ -296,25 +278,6 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
             }
             cells.append(cell);
             seenCellIds.insert(cell.cellId);
-        }
-    }
-
-    Q_FOREACH (const QString &modemPath, m_networkRegistrations.keys()) {
-        CellPositioningData currCell;
-        currCell.cellId = m_networkRegistrations[modemPath]->cellId();
-        currCell.signalStrength = m_networkRegistrations[modemPath]->strength() > 0 ? m_networkRegistrations[modemPath]->strength() : maxNeighborSignalStrength;
-        bool alreadyRecorded = false;
-        Q_FOREACH (const CellPositioningData &cell, cells) {
-            if (currCell.cellId == cell.cellId) {
-                qCDebug(lcGeoclueMlsdbPosition) << "registration:" << modemPath << "with cell data:" << currCell.cellId << "," << currCell.signalStrength << "was already seen as neighbour cell";
-                alreadyRecorded = true;
-                break;
-            }
-        }
-
-        if (!alreadyRecorded && currCell.cellId != 0) {
-            qCDebug(lcGeoclueMlsdbPosition) << "registration:" << modemPath << "has cell data:" << currCell.cellId << "," << currCell.signalStrength;
-            cells.prepend(currCell);
         }
     }
 
@@ -417,38 +380,6 @@ void MlsdbProvider::cellularNetworkRegistrationChanged()
 {
     qCDebug(lcGeoclueMlsdb);
     calculatePositionAndEmitLocation();
-}
-
-void MlsdbProvider::enabledModemsChanged(const QStringList &enabledModems)
-{
-    QStringList currentModems = m_networkRegistrations.keys();
-    Q_FOREACH (const QString &modem, enabledModems) {
-        if (currentModems.contains(modem)) {
-            // we've already handled this modem
-            currentModems.removeAll(modem);
-            continue;
-        } else {
-            // newly enabled modem.  create a registration instance to watch for cellid changes
-            QOfonoNetworkRegistration *reg = new QOfonoNetworkRegistration(this);
-            reg->setModemPath(modem);
-            connect(reg, &QOfonoNetworkRegistration::cellIdChanged,
-                    this, &MlsdbProvider::cellularNetworkRegistrationChanged);
-            connect(reg, &QOfonoNetworkRegistration::locationAreaCodeChanged,
-                    this, &MlsdbProvider::cellularNetworkRegistrationChanged);
-            m_networkRegistrations.insert(modem, reg);
-        }
-    }
-
-    // any modems left over in the current modems list were disabled
-    // and need to have their corresponding network registration instance removed.
-    Q_FOREACH (const QString &disabledModem, currentModems) {
-        QOfonoNetworkRegistration *reg = m_networkRegistrations.value(disabledModem);
-        m_networkRegistrations.remove(disabledModem);
-        if (reg) {
-            QObject::disconnect(reg, 0, this, 0);
-            reg->deleteLater();
-        }
-    }
 }
 
 void MlsdbProvider::emitLocationChanged()
