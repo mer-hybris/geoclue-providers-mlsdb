@@ -18,7 +18,7 @@ BuildRequires: pkgconfig(qofonoext)
 %package tool
 Summary:   Cell tower id to location database tool for geoclue-provider-mlsdb
 Group:     System/Application
-Requires:  %{name}-extensions = %{version}
+Requires:  %{name} = %{version}
 
 %description tool
 %{summary}.
@@ -26,7 +26,7 @@ Requires:  %{name}-extensions = %{version}
 %package data
 Summary:   Cell tower id to location data
 Group:     System/Data
-Requires:  %{name}-extensions = %{version}
+Requires:  %{name} = %{version}
 
 %description data
 %{summary}.
