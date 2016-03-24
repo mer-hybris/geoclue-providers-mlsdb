@@ -450,14 +450,16 @@ void MlsdbProvider::setStatus(MlsdbProvider::Status status)
 /*
     Returns true if positioning is enabled, otherwise returns false.
 
-    Currently checks the state of the Location enabled setting.
+    Currently checks the state of the Location enabled setting and
+    the cell_id_positioning_enabled setting.
 */
 bool MlsdbProvider::positioningEnabled()
 {
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("location"));
     bool enabled = settings.value(QStringLiteral("enabled"), false).toBool();
-    return enabled;
+    bool cellIdPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), false).toBool();
+    return enabled && cellIdPositioningEnabled;
 }
 
 quint32 MlsdbProvider::minimumRequestedUpdateInterval() const
