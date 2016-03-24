@@ -8,7 +8,7 @@ target.path = /usr/libexec
 QT = core dbus network
 
 CONFIG += link_pkgconfig
-PKGCONFIG += connman-qt5 qofono-qt5 qofonoext
+PKGCONFIG += qofono-qt5 qofonoext
 
 LIBS += -lrt
 
