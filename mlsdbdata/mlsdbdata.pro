@@ -2,19 +2,19 @@ TEMPLATE=aux
 
 # generated with: geoclue-mlsdb-tool -r Devel MLS-full-cell-export-2016-03-14T000000.csv
 devel_data.files=devel/mlsdb.data
-devel_data.path=/usr/share/geoclue-provider-mlsdb/
+devel_data.path=/usr/share/geoclue-provider-mlsdb/devel/
 
-# generated with: geoclue-mlsdb-tool -c India MLS-full-cell-export-2016-03-14T000000.csv
-india_data.files=india/mlsdb.data
-india_data.path=/usr/share/geoclue-provider-mlsdb/
+# India: generated with: geoclue-mlsdb-tool -c India MLS-full-cell-export-2016-03-14T000000.csv
+india_data.files=in/mlsdb.data
+india_data.path=/usr/share/geoclue-provider-mlsdb/in/
 
-# generated with: geoclue-mlsdb-tool -c Australia MLS-full-cell-export-2016-03-14T000000.csv
-australia_data.files=australia/mlsdb.data
-australia_data.path=/usr/share/geoclue-provider-mlsdb/
+# Australia: generated with: geoclue-mlsdb-tool -c Australia MLS-full-cell-export-2016-03-14T000000.csv
+australia_data.files=au/mlsdb.data
+australia_data.path=/usr/share/geoclue-provider-mlsdb/au/
 
-# generated with: geoclue-mlsdb-tool -c Finland MLS-full-cell-export-2016-03-14T000000.csv
-finland_data.files=finland/mlsdb.data
-finland_data.files=/usr/share/geoclue-provider-mlsdb/
+# Finland: generated with: geoclue-mlsdb-tool -c Finland MLS-full-cell-export-2016-03-14T000000.csv
+finland_data.files=fi/mlsdb.data
+finland_data.path=/usr/share/geoclue-provider-mlsdb/fi/
 
 OTHER_FILES += \
     $$devel_data.files \
@@ -22,4 +22,4 @@ OTHER_FILES += \
     $$australia_data.files \
     $$finland_data.files
 
-INSTALLS += devel_data
+INSTALLS += devel_data india_data australia_data finland_data

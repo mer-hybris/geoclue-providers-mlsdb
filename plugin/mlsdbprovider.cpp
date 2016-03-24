@@ -17,6 +17,8 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QFileInfoList>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QList>
 #include <QtDBus/QDBusConnection>
@@ -110,10 +112,24 @@ MlsdbProvider::~MlsdbProvider()
  */
 void MlsdbProvider::populateCellIdToLocationMap()
 {
-    const QString mlsdbdata(QStringLiteral("/usr/share/geoclue-provider-mlsdb/mlsdb.data"));
+    QString mlsdbdata(QStringLiteral("/usr/share/geoclue-provider-mlsdb/mlsdb.data"));
     if (!QFile::exists(mlsdbdata)) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file does not exist:" << mlsdbdata;
-        return;
+        // look for a country or region specific mlsdb.data file.
+        QDir mlsdbdataDir(QStringLiteral("/usr/share/geoclue-provider-mlsdb/"));
+        if (!mlsdbdataDir.exists()) {
+            return;
+        }
+        QStringList subdirs = mlsdbdataDir.entryList(QDir::AllDirs | QDir::NoDot | QDir::NoDotDot);
+        bool foundSubdirData = false;
+        Q_FOREACH (const QString &subdir, subdirs) {
+            mlsdbdata = QStringLiteral("/usr/share/geoclue-provider-mlsdb/%1/mlsdb.data").arg(subdir);
+            foundSubdirData = true;
+            break;
+        }
+        if (!foundSubdirData) {
+            qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file does not exist.";
+            return; // no country or region specific data file exists.
+        }
     }
 
     QFile file(mlsdbdata);

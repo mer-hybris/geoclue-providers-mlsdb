@@ -23,14 +23,39 @@ Requires:  %{name} = %{version}
 %description tool
 %{summary}.
 
-%package data
-Summary:   Cell tower id to location data
+%package data-devel
+Summary:   Cell tower id to location development data (.fi, .au, .in)
 Group:     System/Data
 Requires:  %{name} = %{version}
 
-%description data
+%description data-devel
 %{summary}.
 
+%package data-in
+Summary:   Cell tower id to location data (.in)
+Group:     System/Data
+Requires:  %{name} = %{version}
+
+%description data-in
+%{summary}.
+
+
+%package data-fi
+Summary:   Cell tower id to location data (.fi)
+Group:     System/Data
+Requires:  %{name} = %{version}
+
+%description data-fi
+%{summary}.
+
+
+%package data-au
+Summary:   Cell tower id to location data (.au)
+Group:     System/Data
+Requires:  %{name} = %{version}
+
+%description data-au
+%{summary}.
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -54,7 +79,18 @@ make INSTALL_ROOT=%{buildroot} install
 %defattr(-,root,root,-)
 %{_bindir}/geoclue-mlsdb-tool
 
-%files data
+%files data-devel
 %defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/mlsdb.data
 
+%files data-in
+%defattr(-,root,root,-)
+%{_datadir}/geoclue-provider-mlsdb/in/mlsdb.data
+
+%files data-fi
+%defattr(-,root,root,-)
+%{_datadir}/geoclue-provider-mlsdb/fi/mlsdb.data
+
+%files data-au
+%defattr(-,root,root,-)
+%{_datadir}/geoclue-provider-mlsdb/au/mlsdb.data
