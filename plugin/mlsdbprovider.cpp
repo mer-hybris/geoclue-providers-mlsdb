@@ -474,7 +474,7 @@ bool MlsdbProvider::positioningEnabled()
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("location"));
     bool enabled = settings.value(QStringLiteral("enabled"), false).toBool();
-    bool cellIdPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), false).toBool();
+    bool cellIdPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), true).toBool();
     return enabled && cellIdPositioningEnabled;
 }
 
