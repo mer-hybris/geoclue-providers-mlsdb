@@ -16,7 +16,7 @@ BuildRequires: pkgconfig(qofonoext)
 %{summary}.
 
 %package tool
-Summary:   Cell tower id to location database tool for geoclue-provider-mlsdb
+Summary:   Cell id to location database tool for geoclue-provider-mlsdb
 Group:     System/Application
 Requires:  %{name} = %{version}
 
@@ -24,7 +24,7 @@ Requires:  %{name} = %{version}
 %{summary}.
 
 %package data-devel
-Summary:   Cell tower id to location development data (.fi, .au, .in)
+Summary:   Cell id to location development data (.fi, .au, .in)
 Group:     System/Data
 Requires:  %{name} = %{version}
 
@@ -32,7 +32,7 @@ Requires:  %{name} = %{version}
 %{summary}.
 
 %package data-in
-Summary:   Cell tower id to location data (.in)
+Summary:   Cell id to location data (.in)
 Group:     System/Data
 Requires:  %{name} = %{version}
 
@@ -41,7 +41,7 @@ Requires:  %{name} = %{version}
 
 
 %package data-fi
-Summary:   Cell tower id to location data (.fi)
+Summary:   Cell id to location data (.fi)
 Group:     System/Data
 Requires:  %{name} = %{version}
 
@@ -50,7 +50,7 @@ Requires:  %{name} = %{version}
 
 
 %package data-au
-Summary:   Cell tower id to location data (.au)
+Summary:   Cell id to location data (.au)
 Group:     System/Data
 Requires:  %{name} = %{version}
 
@@ -81,16 +81,48 @@ make INSTALL_ROOT=%{buildroot} install
 
 %files data-devel
 %defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/devel/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/1/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/2/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/3/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/4/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/5/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/6/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/7/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/8/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/devel/9/mlsdb.data
 
 %files data-in
 %defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/in/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/1/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/2/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/3/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/4/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/5/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/6/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/7/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/8/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/in/9/mlsdb.data
 
 %files data-fi
 %defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/fi/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/1/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/2/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/3/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/4/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/5/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/6/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/7/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/8/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/fi/9/mlsdb.data
 
 %files data-au
 %defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/au/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/1/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/2/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/3/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/4/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/5/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/6/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/7/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/8/mlsdb.data
+%{_datadir}/geoclue-provider-mlsdb/au/9/mlsdb.data

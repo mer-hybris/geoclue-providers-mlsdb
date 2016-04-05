@@ -15,9 +15,11 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <QSet>
 #include <QVariant>
 #include <QDataStream>
 #include <QFile>
+#include <QDir>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -135,7 +137,7 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
 
     // radio,mcc,net,area,cell,unit,lon,lat,range,samples,changeable,created,updated,averageSignal
     QList<QByteArray> fields = line.split(',');
-    // grab the type of cell tower (LTE, GSM/WCDMA, UMTS, etc)
+    // grab the type of cell (LTE, GSM/WCDMA, UMTS, etc)
     QString cellTypeStr = QString::fromLatin1(fields[0]);
     MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
     if (cellTypeStr.compare(QLatin1String("LTE"), Qt::CaseInsensitive) == 0) {
@@ -149,11 +151,11 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
     } else {
         cellType = MLSDB_CELL_TYPE_OTHER;
     }
-    // check to see that there is a cellId associated.  not the case for UMTS towers.
+    // check to see that there is a cellId associated.  not the case for UMTS cells.
     quint32 cellId = QString::fromLatin1(fields[4]).isEmpty() ? 0 : QString::fromLatin1(fields[4]).toUInt();
     quint32 locationCode = QString::fromLatin1(fields[3]).isEmpty() ? 0 : QString::fromLatin1(fields[3]).toUInt();
     if (cellId > 0) {
-        // build the cell tower location.
+        // build the cell location.
         result.composedCellId = composeMlsdbCellId(cellType, locationCode, cellId);
         result.loc.lat = QString::fromLatin1(fields[7]).toDouble();
         result.loc.lon = QString::fromLatin1(fields[6]).toDouble();
@@ -179,7 +181,7 @@ QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<B
         return cellIdToMlsdbCoords;
     }
 
-    fprintf(stdout, "Reading data from file and caching cell tower locations which are within the bounding boxes...\n");
+    fprintf(stdout, "Reading data from file and caching cell locations which are within the bounding boxes...\n");
     quint32 readlines = 0, insertedcells = 0, progresscount = 0;
 #if USE_CONCURRENT
     int currentJobs = THREADCOUNT-1;
@@ -189,7 +191,7 @@ QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<B
     QList<QFuture<ParseLineResult> > results;
 #endif // USE_STD_CONCURRENT
 #endif // USE_CONCURRENT
-    fprintf(stdout, "Progress: %d lines read, %d cell tower locations inserted", readlines, insertedcells);
+    fprintf(stdout, "Progress: %d lines read, %d cell locations inserted", readlines, insertedcells);
     while (true) {
         if (file.atEnd()) break;
 #if USE_CONCURRENT
@@ -229,36 +231,55 @@ QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<B
 
         if (progresscount >= 10000) {
             progresscount = 0;
-            fprintf(stdout, "\33[2K\rProgress: %d lines read, %d cell tower locations inserted", readlines, insertedcells); // line overwrite
+            fprintf(stdout, "\33[2K\rProgress: %d lines read, %d cell locations inserted", readlines, insertedcells); // line overwrite
             fflush(stdout);
         }
     }
 
-    fprintf(stdout, "\nFinished reading data: %d lines read, %d cell tower locations inserted\n", readlines, insertedcells);
+    fprintf(stdout, "\nFinished reading data: %d lines read, %d cell locations inserted\n", readlines, insertedcells);
     return cellIdToMlsdbCoords;
 }
 
 int writeMlsdbData(const QMap<quint64, MlsdbCoords> &cellIdToLocation)
 {
     if (cellIdToLocation.isEmpty()) {
-        fprintf(stderr, "No cell tower locations found which match the required bounding boxes!\n");
+        fprintf(stderr, "No cell locations found which match the required bounding boxes!\n");
         return 1;
     }
 
-    fprintf(stdout, "Writing data to mlsdb.data file...\n");
-    QFile file(QLatin1String("mlsdb.data"));
-    file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
-    out << (quint32)0xc710cdb; // magic cell-tower location db number
-    out << (qint32)2;          // data file version number
-    out.setVersion(QDataStream::Qt_5_0);
-    out << cellIdToLocation;
+    // split the complete cellIdToLocation dictionary into per-location-code-first-digit sub-dictionaries
+    QMap<QChar, QMap<quint64, MlsdbCoords> > perLcfdCellIdToLocation;
+    MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
+    quint32 locationCode = 0, cellId = 0;
+    for (QMap<quint64, MlsdbCoords>::const_iterator it = cellIdToLocation.constBegin();
+         it != cellIdToLocation.constEnd(); it++) {
+        decomposeMlsdbCellId(it.key(), &cellType, &locationCode, &cellId);
+        perLcfdCellIdToLocation[QString::number(locationCode).at(0)].insert(it.key(), it.value());
+    }
+
+    // write each sub-dictionary into a first-digit-of-location-code-specific directory.
+    QDir dir;
+    for (QMap<QChar, QMap<quint64, MlsdbCoords> >::const_iterator it = perLcfdCellIdToLocation.constBegin();
+         it != perLcfdCellIdToLocation.constEnd(); ++it) {
+        // create the directory
+        dir.mkpath(QStringLiteral("./%1").arg(it.key()));
+        // write the data file
+        const QString fileName(QStringLiteral("./%1/mlsdb.data").arg(it.key()));
+        fprintf(stdout, "Writing data (%d entries) to mlsdb.data file: %s\n", it.value().size(), fileName.toStdString().c_str());
+        QFile file(fileName);
+        file.open(QIODevice::WriteOnly);
+        QDataStream out(&file);
+        out << (quint32)0xc710cdb; // magic cell-tower location db number
+        out << (qint32)2;          // data file version number
+        out.setVersion(QDataStream::Qt_5_0);
+        out << it.value();
+    }
 
     fprintf(stdout, "Done!\n");
     return 0; // success
 }
 
-int queryCellTowerLocation(quint32 locationAreaCode, quint32 cellId, const QString &mlsdbdata)
+int queryCellLocation(quint32 locationAreaCode, quint32 cellId, const QString &mlsdbdata)
 {
     if (cellId == 0) {
         fprintf(stderr, "Invalid cellId specified!\n");
@@ -289,7 +310,7 @@ int queryCellTowerLocation(quint32 locationAreaCode, quint32 cellId, const QStri
     QMap<quint64, MlsdbCoords> composedCellIdToLocation;
     in >> composedCellIdToLocation;
     if (composedCellIdToLocation.isEmpty()) {
-        fprintf(stderr, "geoclue-mlsdb data file contained no cell tower locations!\n");
+        fprintf(stderr, "geoclue-mlsdb data file contained no cell locations!\n");
         return 1;
     }
 
@@ -297,18 +318,18 @@ int queryCellTowerLocation(quint32 locationAreaCode, quint32 cellId, const QStri
     quint64 lteCellId = composeMlsdbCellId(MLSDB_CELL_TYPE_LTE, locationAreaCode, cellId);
     quint64 gsmCellId = composeMlsdbCellId(MLSDB_CELL_TYPE_GSM_WCDMA, locationAreaCode, cellId);
     if (!composedCellIdToLocation.contains(lteCellId) && !composedCellIdToLocation.contains(gsmCellId)) {
-        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell tower with id: %d in LAC: %d\n", cellId, locationAreaCode);
+        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell with id: %d in LAC: %d\n", cellId, locationAreaCode);
         return 1;
     }
 
     if (composedCellIdToLocation.contains(lteCellId)) {
-        MlsdbCoords towerLocation = composedCellIdToLocation.value(lteCellId);
-        fprintf(stdout, "LTE cell tower with id %d is at lat,lon: %f, %f\n", cellId, towerLocation.lat, towerLocation.lon);
+        MlsdbCoords cellLocation = composedCellIdToLocation.value(lteCellId);
+        fprintf(stdout, "LTE cell with id %d is at lat,lon: %f, %f\n", cellId, cellLocation.lat, cellLocation.lon);
     }
 
     if (composedCellIdToLocation.contains(gsmCellId)) {
-        MlsdbCoords towerLocation = composedCellIdToLocation.value(gsmCellId);
-        fprintf(stdout, "GSM/WCDMA cell tower with id %d is at lat,lon: %f, %f\n", cellId, towerLocation.lat, towerLocation.lon);
+        MlsdbCoords cellLocation = composedCellIdToLocation.value(gsmCellId);
+        fprintf(stdout, "GSM/WCDMA cell with id %d is at lat,lon: %f, %f\n", cellId, cellLocation.lat, cellLocation.lon);
     }
 
     return 0; // success
@@ -361,10 +382,9 @@ void printGenericHelp()
 void printCountryHelp()
 {
     fprintf(stdout, "Running `geoclue-mlsdb-tool -c <country> mls.csv` will generate an output"
-                    " file `mlsdb.data` which contains a mapping from (uint32) cell"
-                    " tower id to (double,double) latitude,longitude for all cell"
-                    " towers known in the mls.csv within the bounding-box for that"
-                    " country.\n");
+                    " file `mlsdb.data` which contains a mapping from (uint32) cell id"
+                    " to (double,double) latitude,longitude for all cells known"
+                    " in the mls.csv within the bounding-box for that country.\n");
     fprintf(stdout, "Valid countries are:\n");
     fprintf(stdout, "\tNAME            \tLowerLeft(lat,lon)\tUpperRight(lat,lon)\n");
     const QMap<QString, BoundingBox> cbb(countryBoundingBoxes());
@@ -385,10 +405,9 @@ void printCountryHelp()
 void printRegionHelp()
 {
     fprintf(stdout, "Running `geoclue-mlsdb-tool -r <region> mls.csv` will generate an output"
-                    " file `mlsdb.data` which contains a mapping from (uint32) cell"
-                    " tower id to (double,double) latitude,longitude for all cell"
-                    " towers known in the mls.csv within the bounding-box for that"
-                    " region.\n"
+                    " file `mlsdb.data` which contains a mapping from (uint32) cell id"
+                    " to (double,double) latitude,longitude for all cells known"
+                    " in the mls.csv within the bounding-box for that region.\n"
                     "One special region is the `Devel` region which contains just"
                     " Finland, Australia and India.\n");
     fprintf(stdout, "Valid regions are:\n");
@@ -442,7 +461,7 @@ int main(int argc, char *argv[])
     if (args.length() == 4 && (countryRequest || regionRequest)) {
         return countryRequest ? generateCountryDb(args[2], args[3]) : generateRegionDb(args[2], args[3]);
     } else if (args.length() == 5 && args[1].compare(QStringLiteral("--query"), Qt::CaseInsensitive) == 0) {
-        return queryCellTowerLocation(args[2].toUInt(), args[3].toUInt(), args[4]);
+        return queryCellLocation(args[2].toUInt(), args[3].toUInt(), args[4]);
     }
 
     printUsageError();
