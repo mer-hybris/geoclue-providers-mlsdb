@@ -148,20 +148,20 @@ void MlsdbProvider::populateCellIdToLocationMap()
     quint32 magic = 0, expectedMagic = (quint32)0xc710cdb;
     in >> magic;
     if (magic != 0xc710cdb) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file format unknown:" << magic << "expected:" << expectedMagic;
+        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << mlsdbdata << "format unknown:" << magic << "expected:" << expectedMagic;
         return;
     }
     qint32 version;
     in >> version;
-    if (version != 1) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file version unknown:" << version;
+    if (version != 2) {
+        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << mlsdbdata << "version unknown:" << version;
         return;
     }
-    in >> m_cellIdToLocation;
-    if (m_cellIdToLocation.isEmpty()) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contained no cell tower locations!";
+    in >> m_composedCellIdToLocation;
+    if (m_composedCellIdToLocation.isEmpty()) {
+        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << mlsdbdata << "contained no cell tower locations!";
     } else {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contains" << m_cellIdToLocation.size() << "cell tower locations.";
+        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << mlsdbdata << "contains" << m_composedCellIdToLocation.size() << "cell tower locations.";
     }
 }
 
@@ -282,21 +282,29 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
     qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
     quint32 maxNeighborSignalStrength = 1;
-    QSet<quint32> seenCellIds;
+    QSet<quint64> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
         CellPositioningData cell;
+        MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
+        quint32 locationCode = 0;
+        quint32 cellId = 0;
         if (c->cid() != -1 && c->cid() != 0) {
             // gsm / wcdma
-            cell.cellId = c->cid();
+            cellType = MLSDB_CELL_TYPE_GSM_WCDMA;
+            locationCode = static_cast<quint32>(c->lac());
+            cellId = static_cast<quint32>(c->cid());
         } else if (c->ci() != -1 && c->ci() != 0) {
             // lte
-            cell.cellId = c->ci();
+            cellType = MLSDB_CELL_TYPE_LTE;
+            locationCode = static_cast<quint32>(c->tac());
+            cellId = static_cast<quint32>(c->ci());
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id:" << c->type() << c->mcc() << c->mnc();
+            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id:" << c->type() << c->mcc() << c->mnc() << c->lac() << c->tac();
             continue; // no cell id.
         }
-        if (!seenCellIds.contains(cell.cellId)) {
-            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.cellId << "with strength:" << c->signalStrength();
+        cell.composedCellId = composeMlsdbCellId(cellType, locationCode, cellId);
+        if (!seenCellIds.contains(cell.composedCellId)) {
+            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << stringForMlsdbCellType(cellType) << locationCode << cellId << "with strength:" << c->signalStrength();
             cell.signalStrength = c->signalStrength();
             if (cell.signalStrength > maxNeighborSignalStrength) {
                 // used for the cell towers we're connected to.
@@ -306,17 +314,17 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
                 maxNeighborSignalStrength = cell.signalStrength;
             }
             cells.append(cell);
-            seenCellIds.insert(cell.cellId);
+            seenCellIds.insert(cell.composedCellId);
         }
     }
 
     // determine which towers we have an accurate location for, from MLSDB data.
     double totalSignalStrength = 0.0;
-    QMap<quint32, MlsdbCoords> towerLocations;
+    QMap<quint64, MlsdbCoords> towerLocations;
     Q_FOREACH (const CellPositioningData &cell, cells) {
-        if (m_cellIdToLocation.contains(cell.cellId)) {
-            MlsdbCoords towerCoords = m_cellIdToLocation.value(cell.cellId);
-            towerLocations.insert(cell.cellId, towerCoords);
+        if (m_composedCellIdToLocation.contains(cell.composedCellId)) {
+            MlsdbCoords towerCoords = m_composedCellIdToLocation.value(cell.composedCellId);
+            towerLocations.insert(cell.composedCellId, towerCoords);
             totalSignalStrength += (1.0 * cell.signalStrength);
         }
     }
@@ -336,16 +344,20 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
     double deviceLatitude = 0.0;
     double deviceLongitude = 0.0;
     Q_FOREACH (const CellPositioningData &cell, cells) {
-        if (towerLocations.contains(cell.cellId)) {
-            const MlsdbCoords &towerCoords(towerLocations.value(cell.cellId));
+        quint32 dcellId = 0, dlocationCode = 0;
+        MlsdbCellType dcellType = MLSDB_CELL_TYPE_OTHER;
+        decomposeMlsdbCellId(cell.composedCellId, &dcellType, &dlocationCode, &dcellId);
+        if (towerLocations.contains(cell.composedCellId)) {
+            const MlsdbCoords &towerCoords(towerLocations.value(cell.composedCellId));
             double weight = (((double)cell.signalStrength) / totalSignalStrength);
             deviceLatitude += (weight * towerCoords.lat);
             deviceLongitude += (weight * towerCoords.lon);
-            qCDebug(lcGeoclueMlsdbPosition) << "have cell tower" << cell.cellId
-                                            << "with position:" << towerCoords.lat << "," << towerCoords.lon
-                                            << "with strength:" << ((double)cell.signalStrength / totalSignalStrength);
+            qCDebug(lcGeoclueMlsdbPosition) << "have cell tower:" << stringForMlsdbCellType(dcellType) << dlocationCode << dcellId
+                                            << "with position:"   << towerCoords.lat << "," << towerCoords.lon
+                                            << "with strength:"   << ((double)cell.signalStrength / totalSignalStrength);
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell tower with id:" << cell.cellId;
+            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell tower with id:"
+                                            << stringForMlsdbCellType(dcellType) << dlocationCode << dcellId;
         }
     }
 

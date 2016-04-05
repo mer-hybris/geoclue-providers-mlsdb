@@ -129,11 +129,11 @@ private:
     Location m_lastLocation;
 
     struct CellPositioningData {
-        quint32 cellId;
+        quint64 composedCellId;
         quint32 signalStrength;
     };
     QOfonoExtCellWatcher *m_cellWatcher;
-    QMap<quint32, MlsdbCoords> m_cellIdToLocation;
+    QMap<quint64, MlsdbCoords> m_composedCellIdToLocation;
 
     QDBusServiceWatcher *m_watcher;
     struct ServiceData {
