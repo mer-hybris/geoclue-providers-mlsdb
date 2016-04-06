@@ -120,7 +120,7 @@ private:
     bool positioningEnabled();
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
-    bool searchForCellIdLocation(quint64 composedCellId, MlsdbCoords *coords);
+    bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);
 
     QFileSystemWatcher m_locationSettingsWatcher;
     bool m_positioningEnabled;
@@ -130,12 +130,12 @@ private:
     Location m_lastLocation;
 
     struct CellPositioningData {
-        quint64 composedCellId;
+        MlsdbUniqueCellId uniqueCellId;
         quint32 signalStrength;
     };
     QOfonoExtCellWatcher *m_cellWatcher;
-    QMap<quint64, MlsdbCoords> m_composedCellIdToLocation; // cache
-    QSet<quint64> m_knownCellIdsWithUnknownLocations;
+    QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache
+    QSet<MlsdbUniqueCellId> m_knownCellIdsWithUnknownLocations;
 
     QDBusServiceWatcher *m_watcher;
     struct ServiceData {

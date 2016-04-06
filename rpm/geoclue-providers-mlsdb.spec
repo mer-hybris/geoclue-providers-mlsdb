@@ -23,14 +23,6 @@ Requires:  %{name} = %{version}
 %description tool
 %{summary}.
 
-%package data-devel
-Summary:   Cell id to location development data (.fi, .au, .in)
-Group:     System/Data
-Requires:  %{name} = %{version}
-
-%description data-devel
-%{summary}.
-
 %package data-in
 Summary:   Cell id to location data (.in)
 Group:     System/Data
@@ -78,18 +70,6 @@ make INSTALL_ROOT=%{buildroot} install
 %files tool
 %defattr(-,root,root,-)
 %{_bindir}/geoclue-mlsdb-tool
-
-%files data-devel
-%defattr(-,root,root,-)
-%{_datadir}/geoclue-provider-mlsdb/devel/1/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/2/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/3/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/4/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/5/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/6/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/7/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/8/mlsdb.data
-%{_datadir}/geoclue-provider-mlsdb/devel/9/mlsdb.data
 
 %files data-in
 %defattr(-,root,root,-)

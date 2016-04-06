@@ -24,25 +24,21 @@ QDataStream &operator>>(QDataStream &in, MlsdbCoords &coords)
     return in;
 }
 
-quint64 composeMlsdbCellId(MlsdbCellType cellType, quint32 locationAreaCode, quint32 cellId)
+QDataStream &operator<<(QDataStream &out, const MlsdbUniqueCellId &cellId)
 {
-    // A valid CID ranges from 0 to 65535 (2^16-1) on GSM and CDMA networks
-    // and from 0 to 268435455 (2^28-1) on UMTS and LTE networks.
-    // Hence, we have 4 bits we can use to store the cellType,
-    // within a quint32.
-    // Then we store the location area code above that, forming a single 64 bit number.
-    quint64 retn = 0;
-    retn |= static_cast<quint64>(cellType & 0xF);
-    retn |= (static_cast<quint64>(cellId) << 4);
-    retn |= (static_cast<quint64>(locationAreaCode) << 32);
-    return retn;
+    out << cellId.m_cellId << cellId.m_locationCode << cellId.m_mcc << cellId.m_mnc;
+    return out;
 }
 
-void decomposeMlsdbCellId(quint64 composed, MlsdbCellType *cellType, quint32 *locationAreaCode, quint32 *cellId)
+QDataStream &operator>>(QDataStream &in, MlsdbUniqueCellId &cellId)
 {
-    *cellType = static_cast<MlsdbCellType>(composed & 0x000000000000000F);
-    *cellId = (static_cast<quint32>(composed & 0x00000000FFFFFFF0) >> 4);
-    *locationAreaCode = static_cast<quint32>((composed & 0xFFFFFFFF00000000) >> 32);
+    in >> cellId.m_cellId >> cellId.m_locationCode >> cellId.m_mcc >> cellId.m_mnc;
+    return in;
+}
+
+uint qHash(const MlsdbUniqueCellId &key)
+{
+    return key.m_cellId;
 }
 
 QString stringForMlsdbCellType(MlsdbCellType type)
@@ -54,3 +50,4 @@ QString stringForMlsdbCellType(MlsdbCellType type)
         default: return QLatin1String("OTHER");
     }
 }
+

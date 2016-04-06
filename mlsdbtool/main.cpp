@@ -127,7 +127,7 @@ QMap<QString, QVector<BoundingBox> > regionBoundingBoxes()
 
 struct ParseLineResult {
     bool withinBBox;
-    quint64 composedCellId;
+    MlsdbUniqueCellId uniqueCellId;
     MlsdbCoords loc;
 };
 ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingBox> &boundingBoxes)
@@ -151,12 +151,15 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
     } else {
         cellType = MLSDB_CELL_TYPE_OTHER;
     }
-    // check to see that there is a cellId associated.  not the case for UMTS cells.
+    // parse mcc and mnc fields
+    quint16 mcc = QString::fromLatin1(fields[1]).isEmpty() ? 0 : QString::fromLatin1(fields[1]).toUInt();
+    quint16 mnc = QString::fromLatin1(fields[2]).isEmpty() ? 0 : QString::fromLatin1(fields[2]).toUInt();
+    // check to see that there is a cellId associated.  not the case for some UMTS cells.
     quint32 cellId = QString::fromLatin1(fields[4]).isEmpty() ? 0 : QString::fromLatin1(fields[4]).toUInt();
     quint32 locationCode = QString::fromLatin1(fields[3]).isEmpty() ? 0 : QString::fromLatin1(fields[3]).toUInt();
     if (cellId > 0) {
         // build the cell location.
-        result.composedCellId = composeMlsdbCellId(cellType, locationCode, cellId);
+        result.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
         result.loc.lat = QString::fromLatin1(fields[7]).toDouble();
         result.loc.lon = QString::fromLatin1(fields[6]).toDouble();
         // check to see if it's within our bounding boxes
@@ -170,9 +173,9 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
     return result;
 }
 
-QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<BoundingBox> &boundingBoxes)
+QMap<MlsdbUniqueCellId, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<BoundingBox> &boundingBoxes)
 {
-    QMap<quint64, MlsdbCoords> cellIdToMlsdbCoords;
+    QMap<MlsdbUniqueCellId, MlsdbCoords> cellIdToMlsdbCoords;
 
     // read the csv file line by line, check whether it belongs in the map, insert or discard.
     QFile file(mlscsv);
@@ -224,7 +227,7 @@ QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<B
 #endif
             if (r.withinBBox) {
                 insertedcells++;
-                cellIdToMlsdbCoords.insert(r.composedCellId, r.loc);
+                cellIdToMlsdbCoords.insert(r.uniqueCellId, r.loc);
             }
             progresscount++;
         }
@@ -240,7 +243,7 @@ QMap<quint64, MlsdbCoords> siftMlsCsvData(const QString &mlscsv, const QVector<B
     return cellIdToMlsdbCoords;
 }
 
-int writeMlsdbData(const QMap<quint64, MlsdbCoords> &cellIdToLocation)
+int writeMlsdbData(const QMap<MlsdbUniqueCellId, MlsdbCoords> &cellIdToLocation)
 {
     if (cellIdToLocation.isEmpty()) {
         fprintf(stderr, "No cell locations found which match the required bounding boxes!\n");
@@ -248,18 +251,15 @@ int writeMlsdbData(const QMap<quint64, MlsdbCoords> &cellIdToLocation)
     }
 
     // split the complete cellIdToLocation dictionary into per-location-code-first-digit sub-dictionaries
-    QMap<QChar, QMap<quint64, MlsdbCoords> > perLcfdCellIdToLocation;
-    MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
-    quint32 locationCode = 0, cellId = 0;
-    for (QMap<quint64, MlsdbCoords>::const_iterator it = cellIdToLocation.constBegin();
+    QMap<QChar, QMap<MlsdbUniqueCellId, MlsdbCoords> > perLcfdCellIdToLocation;
+    for (QMap<MlsdbUniqueCellId, MlsdbCoords>::const_iterator it = cellIdToLocation.constBegin();
          it != cellIdToLocation.constEnd(); it++) {
-        decomposeMlsdbCellId(it.key(), &cellType, &locationCode, &cellId);
-        perLcfdCellIdToLocation[QString::number(locationCode).at(0)].insert(it.key(), it.value());
+        perLcfdCellIdToLocation[QString::number(it.key().locationCode()).at(0)].insert(it.key(), it.value());
     }
 
     // write each sub-dictionary into a first-digit-of-location-code-specific directory.
     QDir dir;
-    for (QMap<QChar, QMap<quint64, MlsdbCoords> >::const_iterator it = perLcfdCellIdToLocation.constBegin();
+    for (QMap<QChar, QMap<MlsdbUniqueCellId, MlsdbCoords> >::const_iterator it = perLcfdCellIdToLocation.constBegin();
          it != perLcfdCellIdToLocation.constEnd(); ++it) {
         // create the directory
         dir.mkpath(QStringLiteral("./%1").arg(it.key()));
@@ -270,7 +270,7 @@ int writeMlsdbData(const QMap<quint64, MlsdbCoords> &cellIdToLocation)
         file.open(QIODevice::WriteOnly);
         QDataStream out(&file);
         out << (quint32)0xc710cdb; // magic cell-tower location db number
-        out << (qint32)2;          // data file version number
+        out << (qint32)3;          // data file version number
         out.setVersion(QDataStream::Qt_5_0);
         out << it.value();
     }
@@ -279,7 +279,7 @@ int writeMlsdbData(const QMap<quint64, MlsdbCoords> &cellIdToLocation)
     return 0; // success
 }
 
-int queryCellLocation(quint32 locationAreaCode, quint32 cellId, const QString &mlsdbdata)
+int queryCellLocation(quint32 locationAreaCode, quint32 cellId, quint16 mcc, quint16 mnc, const QString &mlsdbdata)
 {
     if (cellId == 0) {
         fprintf(stderr, "Invalid cellId specified!\n");
@@ -303,33 +303,33 @@ int queryCellLocation(quint32 locationAreaCode, quint32 cellId, const QString &m
     }
     qint32 version;
     in >> version;
-    if (version != 1) {
+    if (version != 3) {
         fprintf(stderr, "geoclue-mlsdb data file version unknown: %d\n", version);
         return 1;
     }
-    QMap<quint64, MlsdbCoords> composedCellIdToLocation;
-    in >> composedCellIdToLocation;
-    if (composedCellIdToLocation.isEmpty()) {
+    QMap<MlsdbUniqueCellId, MlsdbCoords> uniqueCellIdToLocation;
+    in >> uniqueCellIdToLocation;
+    if (uniqueCellIdToLocation.isEmpty()) {
         fprintf(stderr, "geoclue-mlsdb data file contained no cell locations!\n");
         return 1;
     }
 
     fprintf(stdout, "Searching for %d within data...\n", cellId);
-    quint64 lteCellId = composeMlsdbCellId(MLSDB_CELL_TYPE_LTE, locationAreaCode, cellId);
-    quint64 gsmCellId = composeMlsdbCellId(MLSDB_CELL_TYPE_GSM_WCDMA, locationAreaCode, cellId);
-    if (!composedCellIdToLocation.contains(lteCellId) && !composedCellIdToLocation.contains(gsmCellId)) {
-        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell with id: %d in LAC: %d\n", cellId, locationAreaCode);
+    MlsdbUniqueCellId lteCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_LTE, cellId, locationAreaCode, mnc, mcc);
+    MlsdbUniqueCellId gsmCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_GSM_WCDMA, cellId, locationAreaCode, mnc, mcc);
+    if (!uniqueCellIdToLocation.contains(lteCellId) && !uniqueCellIdToLocation.contains(gsmCellId)) {
+        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell with id: %d in LAC: %d with MNC: %d, MCC: %d\n", cellId, locationAreaCode, mnc, mcc);
         return 1;
     }
 
-    if (composedCellIdToLocation.contains(lteCellId)) {
-        MlsdbCoords cellLocation = composedCellIdToLocation.value(lteCellId);
-        fprintf(stdout, "LTE cell with id %d is at lat,lon: %f, %f\n", cellId, cellLocation.lat, cellLocation.lon);
+    if (uniqueCellIdToLocation.contains(lteCellId)) {
+        MlsdbCoords cellLocation = uniqueCellIdToLocation.value(lteCellId);
+        fprintf(stdout, "LTE cell with id %d is at lat,lon: %f, %f\n", lteCellId.cellId(), cellLocation.lat, cellLocation.lon);
     }
 
-    if (composedCellIdToLocation.contains(gsmCellId)) {
-        MlsdbCoords cellLocation = composedCellIdToLocation.value(gsmCellId);
-        fprintf(stdout, "GSM/WCDMA cell with id %d is at lat,lon: %f, %f\n", cellId, cellLocation.lat, cellLocation.lon);
+    if (uniqueCellIdToLocation.contains(gsmCellId)) {
+        MlsdbCoords cellLocation = uniqueCellIdToLocation.value(gsmCellId);
+        fprintf(stdout, "GSM/WCDMA cell with id %d is at lat,lon: %f, %f\n", gsmCellId.cellId(), cellLocation.lat, cellLocation.lon);
     }
 
     return 0; // success
@@ -374,7 +374,7 @@ void printGenericHelp()
     fprintf(stdout, "Usage:\n\tgeoclue-mlsdb-tool --help [country|region]\n"
                     "\tgeoclue-mlsdb-tool -c <country> mls.csv\n"
                     "\tgeoclue-mlsdb-tool -r <region> mls.csv\n"
-                    "\tgeoclue-mlsdb-tool --query <locationId> <cellId> mlsdb.data\n");
+                    "\tgeoclue-mlsdb-tool --query <locationId> <cellId> <mcc> <mnc> mlsdb.data\n");
     fprintf(stdout, "For more information about valid country and region arguments,"
                     " run `geoclue-mlsdb-tool --help country` or `geoclue-mlsdb-tool --help region`.\n");
 }
@@ -423,7 +423,52 @@ void printUsageError()
                     "\tgeoclue-mlsdb-tool --help [country|region]\n"
                     "\tgeoclue-mlsdb-tool -c <country> mls.csv\n"
                     "\tgeoclue-mlsdb-tool -r <region> mls.csv\n"
-                    "\tgeoclue-mlsdb-tool --query <locationId> <cellId> mlsdb.data\n");
+                    "\tgeoclue-mlsdb-tool --query <locationId> <cellId> <mcc> <mnc> mlsdb.data\n");
+}
+
+void detectDuplicates(const QString &mlscsv)
+{
+    QMultiMap<MlsdbUniqueCellId, MlsdbCoords> coords;
+    const BoundingBox &bbox(countryBoundingBoxes().value(QStringLiteral("India")));
+
+    // read the csv file line by line, check whether it belongs in the map, insert or discard.
+    QFile file(mlscsv);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        fprintf(stderr, "Failed to open Mozilla Location Services data .csv file for reading!\n");
+        return;
+    }
+    quint32 readlines = 0, progresscount = 0, insertedcells = 0;
+    while (true) {
+        if (file.atEnd()) break;
+        QByteArray line = file.readLine();
+        readlines++;
+        ParseLineResult r = parseLineAndTest(line, QVector<BoundingBox>() << bbox);
+        if (r.withinBBox) {
+            insertedcells++;
+            coords.insert(r.uniqueCellId, r.loc);
+        }
+        progresscount++;
+        if (progresscount >= 10000) {
+            progresscount = 0;
+            fprintf(stdout, "\33[2K\rProgress: %d lines read, %d cell locations inserted", readlines, insertedcells); // line overwrite
+            fflush(stdout);
+        }
+    }
+
+    fprintf(stdout, "\nFinished: %d lines read, %d cell locations inserted\n", readlines, insertedcells);
+
+    // determine if the locations are different
+    Q_FOREACH (const MlsdbUniqueCellId &cellId, coords.keys()) {
+        QList<MlsdbCoords> locs = coords.values(cellId);
+        if (locs.size() > 1) {
+            Q_FOREACH (const MlsdbCoords &loc, locs) {
+                fprintf(stdout, "Have duplicate: type: %s, cellId: %d, locCode: %d, mcc: %d, mnc: %d, lat: %f, lon: %f\n",
+                        stringForMlsdbCellType(cellId.cellType()).toStdString().c_str(),
+                        cellId.cellId(), cellId.locationCode(), cellId.mcc(), cellId.mnc(),
+                        loc.lat, loc.lon);
+            }
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -460,8 +505,8 @@ int main(int argc, char *argv[])
     bool regionRequest  = args[1].compare(QStringLiteral("-r"), Qt::CaseInsensitive) == 0;
     if (args.length() == 4 && (countryRequest || regionRequest)) {
         return countryRequest ? generateCountryDb(args[2], args[3]) : generateRegionDb(args[2], args[3]);
-    } else if (args.length() == 5 && args[1].compare(QStringLiteral("--query"), Qt::CaseInsensitive) == 0) {
-        return queryCellLocation(args[2].toUInt(), args[3].toUInt(), args[4]);
+    } else if (args.length() == 7 && args[1].compare(QStringLiteral("--query"), Qt::CaseInsensitive) == 0) {
+        return queryCellLocation(args[2].toUInt(), args[3].toUInt(), args[4].toUInt(), args[5].toUInt(), args[6]);
     }
 
     printUsageError();
