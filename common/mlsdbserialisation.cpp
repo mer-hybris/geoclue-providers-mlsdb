@@ -45,7 +45,7 @@ QString stringForMlsdbCellType(MlsdbCellType type)
 {
     switch (type) {
         case MLSDB_CELL_TYPE_LTE: return QLatin1String("LTE");
-        case MLSDB_CELL_TYPE_GSM_WCDMA: return QLatin1String("GSM_WCDMA");
+        case MLSDB_CELL_TYPE_GSM: return QLatin1String("GSM");
         case MLSDB_CELL_TYPE_UMTS: return QLatin1String("UMTS");
         default: return QLatin1String("OTHER");
     }

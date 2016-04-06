@@ -283,19 +283,21 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
     QSet<MlsdbUniqueCellId> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
         CellPositioningData cell;
-        MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
         quint32 locationCode = 0;
         quint32 cellId = 0;
         quint16 mcc = c->mcc();
         quint16 mnc = c->mnc();
+        MlsdbCellType cellType = c->type() == QOfonoExtCell::LTE
+                               ? MLSDB_CELL_TYPE_LTE
+                               : c->type() == QOfonoExtCell::GSM
+                               ? MLSDB_CELL_TYPE_GSM
+                               : c->type() == QOfonoExtCell::WCDMA
+                               ? MLSDB_CELL_TYPE_UMTS
+                               : MLSDB_CELL_TYPE_UMTS;
         if (c->cid() != -1 && c->cid() != 0) {
-            // gsm / wcdma
-            cellType = MLSDB_CELL_TYPE_GSM_WCDMA;
             locationCode = static_cast<quint32>(c->lac());
             cellId = static_cast<quint32>(c->cid());
         } else if (c->ci() != -1 && c->ci() != 0) {
-            // lte
-            cellType = MLSDB_CELL_TYPE_LTE;
             locationCode = static_cast<quint32>(c->tac());
             cellId = static_cast<quint32>(c->ci());
         } else {
@@ -306,10 +308,8 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
         }
         cell.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
         if (!seenCellIds.contains(cell.uniqueCellId)) {
-            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell with type:" << stringForMlsdbCellType(cellType)
-                                            << " location:" << locationCode << " cell id: " << cellId
-                                            << " mcc: " << c->mcc() << " mnc: " << c->mnc()
-                                            << " with strength:" << c->signalStrength();
+            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.uniqueCellId.toString()
+                                            << "with strength:" << c->signalStrength();
             cell.signalStrength = c->signalStrength();
             if (cell.signalStrength > maxNeighborSignalStrength) {
                 // used for the cells we're connected to.

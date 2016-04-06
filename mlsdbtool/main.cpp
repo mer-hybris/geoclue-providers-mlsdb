@@ -137,15 +137,13 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
 
     // radio,mcc,net,area,cell,unit,lon,lat,range,samples,changeable,created,updated,averageSignal
     QList<QByteArray> fields = line.split(',');
-    // grab the type of cell (LTE, GSM/WCDMA, UMTS, etc)
+    // grab the type of cell (LTE, GSM, UMTS, etc)
     QString cellTypeStr = QString::fromLatin1(fields[0]);
     MlsdbCellType cellType = MLSDB_CELL_TYPE_LTE;
     if (cellTypeStr.compare(QLatin1String("LTE"), Qt::CaseInsensitive) == 0) {
         cellType = MLSDB_CELL_TYPE_LTE;
     } else if (cellTypeStr.compare(QLatin1String("GSM"), Qt::CaseInsensitive) == 0) {
-        cellType = MLSDB_CELL_TYPE_GSM_WCDMA;
-    } else if (cellTypeStr.compare(QLatin1String("WCDMA"), Qt::CaseInsensitive) == 0) {
-        cellType = MLSDB_CELL_TYPE_GSM_WCDMA;
+        cellType = MLSDB_CELL_TYPE_GSM;
     } else if (cellTypeStr.compare(QLatin1String("UMTS"), Qt::CaseInsensitive) == 0) {
         cellType = MLSDB_CELL_TYPE_UMTS;
     } else {
@@ -315,10 +313,11 @@ int queryCellLocation(quint32 locationAreaCode, quint32 cellId, quint16 mcc, qui
     }
 
     fprintf(stdout, "Searching for %d within data...\n", cellId);
-    MlsdbUniqueCellId lteCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_LTE, cellId, locationAreaCode, mnc, mcc);
-    MlsdbUniqueCellId gsmCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_GSM_WCDMA, cellId, locationAreaCode, mnc, mcc);
-    if (!uniqueCellIdToLocation.contains(lteCellId) && !uniqueCellIdToLocation.contains(gsmCellId)) {
-        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell with id: %d in LAC: %d with MNC: %d, MCC: %d\n", cellId, locationAreaCode, mnc, mcc);
+    MlsdbUniqueCellId lteCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_LTE, cellId, locationAreaCode, mcc, mnc);
+    MlsdbUniqueCellId gsmCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_GSM, cellId, locationAreaCode, mcc, mnc);
+    MlsdbUniqueCellId umtsCellId = MlsdbUniqueCellId(MLSDB_CELL_TYPE_UMTS, cellId, locationAreaCode, mcc, mnc);
+    if (!uniqueCellIdToLocation.contains(lteCellId) && !uniqueCellIdToLocation.contains(gsmCellId) && !uniqueCellIdToLocation.contains(umtsCellId)) {
+        fprintf(stderr, "geoclue-mlsdb data file does not contain location of cell with id: %d in LAC: %d with MCC: %d, MNC: %d\n", cellId, locationAreaCode, mcc, mnc);
         return 1;
     }
 
@@ -329,7 +328,12 @@ int queryCellLocation(quint32 locationAreaCode, quint32 cellId, quint16 mcc, qui
 
     if (uniqueCellIdToLocation.contains(gsmCellId)) {
         MlsdbCoords cellLocation = uniqueCellIdToLocation.value(gsmCellId);
-        fprintf(stdout, "GSM/WCDMA cell with id %d is at lat,lon: %f, %f\n", gsmCellId.cellId(), cellLocation.lat, cellLocation.lon);
+        fprintf(stdout, "GSM cell with id %d is at lat,lon: %f, %f\n", gsmCellId.cellId(), cellLocation.lat, cellLocation.lon);
+    }
+
+    if (uniqueCellIdToLocation.contains(umtsCellId)) {
+        MlsdbCoords cellLocation = uniqueCellIdToLocation.value(umtsCellId);
+        fprintf(stdout, "UMTS cell with id %d is at lat,lon: %f, %f\n", umtsCellId.cellId(), cellLocation.lat, cellLocation.lon);
     }
 
     return 0; // success
@@ -370,7 +374,7 @@ int generateRegionDb(const QString &region, const QString &mlscsv)
 void printGenericHelp()
 {
     fprintf(stdout, "geoclue-mlsdb-tool is used to generate a datastructure containing"
-                    " country- or region-specific GDM/WCDMA/LTE cell location information.\n");
+                    " country- or region-specific GSM/UMTS/LTE cell location information.\n");
     fprintf(stdout, "Usage:\n\tgeoclue-mlsdb-tool --help [country|region]\n"
                     "\tgeoclue-mlsdb-tool -c <country> mls.csv\n"
                     "\tgeoclue-mlsdb-tool -r <region> mls.csv\n"

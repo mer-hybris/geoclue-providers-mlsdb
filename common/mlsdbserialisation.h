@@ -26,7 +26,7 @@ QDataStream &operator>>(QDataStream &in, MlsdbCoords &coords);
 
 enum MlsdbCellType {
     MLSDB_CELL_TYPE_LTE = 0,
-    MLSDB_CELL_TYPE_GSM_WCDMA = 1,
+    MLSDB_CELL_TYPE_GSM = 1,
     MLSDB_CELL_TYPE_UMTS = 2,
     MLSDB_CELL_TYPE_OTHER = 3
 };
