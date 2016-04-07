@@ -68,6 +68,7 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, Accuracy &accurac
 
 MlsdbProvider::MlsdbProvider(QObject *parent)
 :   QObject(parent),
+    m_positioningEnabled(false),
     m_positioningStarted(false),
     m_status(StatusUnavailable),
     m_cellWatcher(new QOfonoExtCellWatcher(this))
@@ -79,6 +80,11 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     qDBusRegisterMetaType<Accuracy>();
 
     staticProvider = this;
+
+    connect(&m_locationSettingsWatcher, &QFileSystemWatcher::fileChanged,
+            this, &MlsdbProvider::updatePositioningEnabled);
+    m_locationSettingsWatcher.addPath(LocationSettingsFile);
+    updatePositioningEnabled();
 
     new GeoclueAdaptor(this);
     new PositionAdaptor(this);
@@ -97,7 +103,11 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     connect(m_cellWatcher, &QOfonoExtCellWatcher::cellsChanged,
             this, &MlsdbProvider::cellularNetworkRegistrationChanged);
 
-    cellularNetworkRegistrationChanged();
+    if (m_positioningEnabled) {
+        cellularNetworkRegistrationChanged();
+    } else {
+        qCDebug(lcGeoclueMlsdb) << "positioning is not currently enabled, idling";
+    }
 }
 
 MlsdbProvider::~MlsdbProvider()
@@ -253,12 +263,15 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 {
     if (event->timerId() == m_idleTimer.timerId()) {
         m_idleTimer.stop();
+        qCDebug(lcGeoclueMlsdb) << "have been idle for too long, quitting";
         qApp->quit();
     } else if (event->timerId() == m_fixLostTimer.timerId()) {
         m_fixLostTimer.stop();
         setStatus(StatusAcquiring);
     } else if (event->timerId() == m_recalculatePositionTimer.timerId()) {
-        calculatePositionAndEmitLocation();
+        if (m_positioningEnabled) {
+            calculatePositionAndEmitLocation();
+        }
     } else {
         QObject::timerEvent(event);
     }
@@ -382,11 +395,22 @@ void MlsdbProvider::serviceUnregistered(const QString &service)
     stopPositioningIfNeeded();
 }
 
-void MlsdbProvider::locationEnabledChanged()
+void MlsdbProvider::updatePositioningEnabled()
 {
-    if (positioningEnabled()) {
+    bool previous = m_positioningEnabled;
+    bool enabled = positioningEnabled();
+    if (previous == enabled) {
+        // the change to the location settings file doesn't affect this plugin.
+        return;
+    }
+
+    if (enabled) {
+        qCDebug(lcGeoclueMlsdb) << "cellId-based positioning has been enabled";
+        m_positioningEnabled = true;
         startPositioningIfNeeded();
     } else {
+        qCDebug(lcGeoclueMlsdb) << "cellId-based positioning has been disabled";
+        m_positioningEnabled = false;
         setLocation(Location());
         stopPositioningIfNeeded();
     }
@@ -394,8 +418,10 @@ void MlsdbProvider::locationEnabledChanged()
 
 void MlsdbProvider::cellularNetworkRegistrationChanged()
 {
-    qCDebug(lcGeoclueMlsdb);
-    calculatePositionAndEmitLocation();
+    if (m_positioningEnabled) {
+        qCDebug(lcGeoclueMlsdb) << "cellular network registrations changed, updating position";
+        calculatePositionAndEmitLocation();
+    }
 }
 
 void MlsdbProvider::emitLocationChanged()
@@ -425,7 +451,7 @@ void MlsdbProvider::startPositioningIfNeeded()
         return;
 
     // Positioning disabled externally
-    if (!positioningEnabled())
+    if (!m_positioningEnabled)
         return;
 
     m_idleTimer.stop();
@@ -444,7 +470,7 @@ void MlsdbProvider::stopPositioningIfNeeded()
         return;
 
     // Positioning enabled externally and positioning is still being used.
-    if (positioningEnabled() && !m_watchedServices.isEmpty())
+    if (m_positioningEnabled && !m_watchedServices.isEmpty())
         return;
 
     qCDebug(lcGeoclueMlsdb) << "Stopping positioning";

@@ -13,6 +13,7 @@
 #ifndef MLSDBPROVIDER_H
 #define MLSDBPROVIDER_H
 
+#include <QtCore/QFileSystemWatcher>
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
 #include <QtCore/QBasicTimer>
@@ -104,7 +105,7 @@ signals:
 private Q_SLOTS:
     void setLocation(const Location &location);
     void serviceUnregistered(const QString &service);
-    void locationEnabledChanged();
+    void updatePositioningEnabled();
     void cellularNetworkRegistrationChanged();
 
 protected:
@@ -120,6 +121,8 @@ private:
     void calculatePositionAndEmitLocation();
     void populateCellIdToLocationMap();
 
+    QFileSystemWatcher m_locationSettingsWatcher;
+    bool m_positioningEnabled;
     bool m_positioningStarted;
     Status m_status;
     Location m_currentLocation;
