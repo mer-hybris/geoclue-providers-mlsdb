@@ -18,6 +18,7 @@
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
+#include <QtCore/QDirIterator>
 #include <QtCore/QFileInfoList>
 #include <QtCore/QSharedPointer>
 #include <QtCore/QList>
@@ -90,7 +91,6 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     new PositionAdaptor(this);
 
     qCDebug(lcGeoclueMlsdb) << "Mozilla Location Services geoclue plugin active";
-    populateCellIdToLocationMap();
     m_idleTimer.start(QuitIdleTime, this);
 
     QDBusConnection connection = QDBusConnection::sessionBus();
@@ -116,53 +116,51 @@ MlsdbProvider::~MlsdbProvider()
         staticProvider = 0;
 }
 
-/*
- * NOTE: This is VERY memory hungry.
- * TODO: Use a paginated serialisation format to minimise memory use.
- */
-void MlsdbProvider::populateCellIdToLocationMap()
+/* TODO: coalesce lookups to avoid unnecessary repeated file I/O */
+bool MlsdbProvider::searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords)
 {
-    QString mlsdbdata(QStringLiteral("/usr/share/geoclue-provider-mlsdb/mlsdb.data"));
-    if (!QFile::exists(mlsdbdata)) {
-        // look for a country or region specific mlsdb.data file.
-        QDir mlsdbdataDir(QStringLiteral("/usr/share/geoclue-provider-mlsdb/"));
-        if (!mlsdbdataDir.exists()) {
-            return;
-        }
-        QStringList subdirs = mlsdbdataDir.entryList(QDir::AllDirs | QDir::NoDot | QDir::NoDotDot);
-        bool foundSubdirData = false;
-        Q_FOREACH (const QString &subdir, subdirs) {
-            mlsdbdata = QStringLiteral("/usr/share/geoclue-provider-mlsdb/%1/mlsdb.data").arg(subdir);
-            foundSubdirData = true;
-            break;
-        }
-        if (!foundSubdirData) {
-            qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file does not exist.";
-            return; // no country or region specific data file exists.
+    // try to find the mlsdb data file which should contain it.
+    // the mlsdb data files are separated into "first digit of location code" directories/buckets.
+    QChar firstDigitAreaCode = QString::number(uniqueCellId.locationCode()).at(0);
+    QDirIterator it("/usr/share/geoclue-provider-mlsdb/", QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString fname(it.next());
+        if (fname.endsWith(QStringLiteral("/%1/mlsdb.data").arg(firstDigitAreaCode), Qt::CaseInsensitive)) {
+            // found an mlsdb.data file which might contain the cell data.  search it.
+            QFile file(fname);
+            file.open(QIODevice::ReadOnly);
+            QDataStream in(&file);
+            quint32 magic = 0, expectedMagic = (quint32)0xc710cdb;
+            in >> magic;
+            if (magic != 0xc710cdb) {
+                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "format unknown:" << magic << "expected:" << expectedMagic;
+                continue; // ignore this file
+            }
+            qint32 version;
+            in >> version;
+            if (version != 3) {
+                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "version unknown:" << version;
+                continue; // ignore this file
+            }
+
+            QMap<MlsdbUniqueCellId, MlsdbCoords> perLcCellIdToLocations;
+            in >> perLcCellIdToLocations;
+            if (perLcCellIdToLocations.isEmpty()) {
+                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contained no cell locations!";
+            } else {
+                if (perLcCellIdToLocations.contains(uniqueCellId)) {
+                    *coords = perLcCellIdToLocations.value(uniqueCellId);
+                    qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contains the location of composed cell id:" << uniqueCellId.toString() << "->" << coords->lat << "," << coords->lon;
+                    return true; // found!
+                } else {
+                    qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contains" << perLcCellIdToLocations.size() << "cell locations, but not for:" << uniqueCellId.toString();
+                }
+            }
         }
     }
 
-    QFile file(mlsdbdata);
-    file.open(QIODevice::ReadOnly);
-    QDataStream in(&file);
-    quint32 magic = 0, expectedMagic = (quint32)0xc710cdb;
-    in >> magic;
-    if (magic != 0xc710cdb) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file format unknown:" << magic << "expected:" << expectedMagic;
-        return;
-    }
-    qint32 version;
-    in >> version;
-    if (version != 1) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file version unknown:" << version;
-        return;
-    }
-    in >> m_cellIdToLocation;
-    if (m_cellIdToLocation.isEmpty()) {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contained no cell tower locations!";
-    } else {
-        qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file contains" << m_cellIdToLocation.size() << "cell tower locations.";
-    }
+    qCDebug(lcGeoclueMlsdb) << "no geoclue-mlsdb data files contain the location of composed cell id:" << uniqueCellId.toString();
+    return false;
 }
 
 void MlsdbProvider::AddReference()
@@ -282,78 +280,109 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
     qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
     quint32 maxNeighborSignalStrength = 1;
-    QSet<quint32> seenCellIds;
+    QSet<MlsdbUniqueCellId> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
         CellPositioningData cell;
+        quint32 locationCode = 0;
+        quint32 cellId = 0;
+        quint16 mcc = c->mcc();
+        quint16 mnc = c->mnc();
+        MlsdbCellType cellType = c->type() == QOfonoExtCell::LTE
+                               ? MLSDB_CELL_TYPE_LTE
+                               : c->type() == QOfonoExtCell::GSM
+                               ? MLSDB_CELL_TYPE_GSM
+                               : c->type() == QOfonoExtCell::WCDMA
+                               ? MLSDB_CELL_TYPE_UMTS
+                               : MLSDB_CELL_TYPE_UMTS;
         if (c->cid() != -1 && c->cid() != 0) {
-            // gsm / wcdma
-            cell.cellId = c->cid();
+            locationCode = static_cast<quint32>(c->lac());
+            cellId = static_cast<quint32>(c->cid());
         } else if (c->ci() != -1 && c->ci() != 0) {
-            // lte
-            cell.cellId = c->ci();
+            locationCode = static_cast<quint32>(c->tac());
+            cellId = static_cast<quint32>(c->ci());
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id:" << c->type() << c->mcc() << c->mnc();
-            continue; // no cell id.
+            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id with type:" << c->type()
+                                            << " mcc:" << c->mcc() << " mnc:" << c->mnc() << " lac:" << c->lac()
+                                            << " tac:" << c->tac() << " pci:" << c->pci() << " psc:" << c->psc();
+            continue;
         }
-        if (!seenCellIds.contains(cell.cellId)) {
-            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.cellId << "with strength:" << c->signalStrength();
+        cell.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
+        if (!seenCellIds.contains(cell.uniqueCellId)) {
+            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.uniqueCellId.toString()
+                                            << "with strength:" << c->signalStrength();
             cell.signalStrength = c->signalStrength();
             if (cell.signalStrength > maxNeighborSignalStrength) {
-                // used for the cell towers we're connected to.
+                // used for the cells we're connected to.
                 // if no signal strength data is available from ofono,
                 // we assume they're at least as strong signals as the
                 // strongest of our neighbor cells.
                 maxNeighborSignalStrength = cell.signalStrength;
             }
             cells.append(cell);
-            seenCellIds.insert(cell.cellId);
+            seenCellIds.insert(cell.uniqueCellId);
         }
     }
 
-    // determine which towers we have an accurate location for, from MLSDB data.
+    // determine which cells we have an accurate location for, from MLSDB data.
     double totalSignalStrength = 0.0;
-    QMap<quint32, MlsdbCoords> towerLocations;
+    QMap<MlsdbUniqueCellId, MlsdbCoords> cellLocations;
     Q_FOREACH (const CellPositioningData &cell, cells) {
-        if (m_cellIdToLocation.contains(cell.cellId)) {
-            MlsdbCoords towerCoords = m_cellIdToLocation.value(cell.cellId);
-            towerLocations.insert(cell.cellId, towerCoords);
-            totalSignalStrength += (1.0 * cell.signalStrength);
+        MlsdbCoords cellCoords;
+        if (!m_uniqueCellIdToLocation.contains(cell.uniqueCellId)) {
+            if (m_knownCellIdsWithUnknownLocations.contains(cell.uniqueCellId)) {
+                // we know that we don't know the location of this cellId.  Skip it.
+                continue;
+            } else {
+                // this is a new cell Id that we haven't encountered yet.  Probe it.
+                if (!searchForCellIdLocation(cell.uniqueCellId, &cellCoords)) {
+                    // we now know that we don't know the location of this cellId.
+                    m_knownCellIdsWithUnknownLocations.insert(cell.uniqueCellId);
+                    continue;
+                }
+                // cache the location of the cell id for future reference.
+                m_uniqueCellIdToLocation.insert(cell.uniqueCellId, cellCoords);
+            }
+        } else {
+            cellCoords = m_uniqueCellIdToLocation.value(cell.uniqueCellId);
         }
+        // we have a known location for this cell.  Update our locations list.
+        cellLocations.insert(cell.uniqueCellId, cellCoords);
+        totalSignalStrength += (1.0 * cell.signalStrength);
     }
 
-    if (towerLocations.size() == 0) {
+    if (cellLocations.size() == 0) {
         qCDebug(lcGeoclueMlsdbPosition) << "no cell id data to calculate position from";
         return;
-    } else if (towerLocations.size() == 1) {
+    } else if (cellLocations.size() == 1) {
         qCDebug(lcGeoclueMlsdbPosition) << "only one cell id datum to calculate position from, position will be extremely inaccurate";
-    } else if (towerLocations.size() == 2) {
+    } else if (cellLocations.size() == 2) {
         qCDebug(lcGeoclueMlsdbPosition) << "only two cell id data to calculate position from, position will be highly inaccurate";
     } else {
-        qCDebug(lcGeoclueMlsdbPosition) << "calculating position from" << towerLocations.size() << "cell id data";
+        qCDebug(lcGeoclueMlsdbPosition) << "calculating position from" << cellLocations.size() << "cell id data";
     }
 
     // now use the current cell and neighboringcell information to triangulate our position.
     double deviceLatitude = 0.0;
     double deviceLongitude = 0.0;
     Q_FOREACH (const CellPositioningData &cell, cells) {
-        if (towerLocations.contains(cell.cellId)) {
-            const MlsdbCoords &towerCoords(towerLocations.value(cell.cellId));
+        if (cellLocations.contains(cell.uniqueCellId)) {
+            const MlsdbCoords &cellCoords(cellLocations.value(cell.uniqueCellId));
             double weight = (((double)cell.signalStrength) / totalSignalStrength);
-            deviceLatitude += (weight * towerCoords.lat);
-            deviceLongitude += (weight * towerCoords.lon);
-            qCDebug(lcGeoclueMlsdbPosition) << "have cell tower" << cell.cellId
-                                            << "with position:" << towerCoords.lat << "," << towerCoords.lon
+            deviceLatitude += (weight * cellCoords.lat);
+            deviceLongitude += (weight * cellCoords.lon);
+            qCDebug(lcGeoclueMlsdbPosition) << "have cell:" << cell.uniqueCellId.toString()
+                                            << "with position:" << cellCoords.lat << "," << cellCoords.lon
                                             << "with strength:" << ((double)cell.signalStrength / totalSignalStrength);
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell tower with id:" << cell.cellId;
+            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell with id:" << cell.uniqueCellId.toString();
         }
     }
 
     Location deviceLocation;
-    if (towerLocations.size()) {
-        // estimate accuracy based on how many cell towers we have.
+    if (cellLocations.size()) {
+        // estimate accuracy based on how many cells we have.
         Accuracy positionAccuracy;
-        positionAccuracy.setHorizontal(qMax(250, (10000 - (1000 * towerLocations.size()))));
+        positionAccuracy.setHorizontal(qMax(250, (10000 - (1000 * cellLocations.size()))));
         deviceLocation.setTimestamp(QDateTime::currentMSecsSinceEpoch());
         deviceLocation.setLatitude(deviceLatitude);
         deviceLocation.setLongitude(deviceLongitude);

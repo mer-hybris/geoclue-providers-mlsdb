@@ -18,6 +18,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QBasicTimer>
 #include <QtCore/QList>
+#include <QtCore/QSet>
 #include <QtCore/QMap>
 #include <QtDBus/QDBusContext>
 
@@ -119,7 +120,7 @@ private:
     bool positioningEnabled();
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
-    void populateCellIdToLocationMap();
+    bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);
 
     QFileSystemWatcher m_locationSettingsWatcher;
     bool m_positioningEnabled;
@@ -129,11 +130,12 @@ private:
     Location m_lastLocation;
 
     struct CellPositioningData {
-        quint32 cellId;
+        MlsdbUniqueCellId uniqueCellId;
         quint32 signalStrength;
     };
     QOfonoExtCellWatcher *m_cellWatcher;
-    QMap<quint32, MlsdbCoords> m_cellIdToLocation;
+    QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache
+    QSet<MlsdbUniqueCellId> m_knownCellIdsWithUnknownLocations;
 
     QDBusServiceWatcher *m_watcher;
     struct ServiceData {
