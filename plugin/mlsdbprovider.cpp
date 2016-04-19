@@ -91,7 +91,9 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     new PositionAdaptor(this);
 
     qCDebug(lcGeoclueMlsdb) << "Mozilla Location Services geoclue plugin active";
-    m_idleTimer.start(QuitIdleTime, this);
+    if (m_watchedServices.isEmpty()) {
+        m_idleTimer.start(QuitIdleTime, this);
+    }
 
     QDBusConnection connection = QDBusConnection::sessionBus();
     m_watcher = new QDBusServiceWatcher(this);
@@ -168,9 +170,14 @@ void MlsdbProvider::AddReference()
     if (!calledFromDBus())
         qFatal("AddReference must only be called from DBus");
 
+    bool wasInactive = m_watchedServices.isEmpty();
     const QString service = message().service();
     m_watcher->addWatchedService(service);
     m_watchedServices[service].referenceCount += 1;
+    if (wasInactive) {
+        qCDebug(lcGeoclueMlsdb) << "new watched service, stopping idle timer.";
+        m_idleTimer.stop();
+    }
 
     startPositioningIfNeeded();
 }
@@ -190,8 +197,10 @@ void MlsdbProvider::RemoveReference()
         m_watchedServices.remove(service);
     }
 
-    if (m_watchedServices.isEmpty())
+    if (m_watchedServices.isEmpty()) {
+        qCDebug(lcGeoclueMlsdb) << "no watched services, starting idle timer.";
         m_idleTimer.start(QuitIdleTime, this);
+    }
 
     stopPositioningIfNeeded();
 }
@@ -417,9 +426,10 @@ void MlsdbProvider::serviceUnregistered(const QString &service)
 {
     m_watchedServices.remove(service);
     m_watcher->removeWatchedService(service);
-
-    if (m_watchedServices.isEmpty())
+    if (m_watchedServices.isEmpty()) {
+        qCDebug(lcGeoclueMlsdb) << "no watched services, starting idle timer.";
         m_idleTimer.start(QuitIdleTime, this);
+    }
 
     stopPositioningIfNeeded();
 }
