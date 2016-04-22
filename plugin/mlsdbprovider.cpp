@@ -43,6 +43,7 @@ namespace {
     const QString LocationSettingsFile = QStringLiteral("/etc/location/location.conf");
     const QString LocationSettingsEnabledKey = QStringLiteral("location/enabled");
     const QString LocationSettingsMlsEnabledKey = QStringLiteral("location/mls/enabled");
+    const QString LocationSettingsMlsOnlineEnabledKey = QStringLiteral("location/mls/online_enabled");
     const QString LocationSettingsOldMlsEnabledKey = QStringLiteral("location/cell_id_positioning_enabled"); // deprecated key
 }
 
@@ -77,6 +78,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_positioningStarted(false),
     m_status(StatusUnavailable),
     m_mlsdbOnlineLocator(0),
+    m_onlinePositioningEnabled(false),
     m_cellWatcher(new QOfonoExtCellWatcher(this))
 {
     if (staticProvider)
@@ -296,16 +298,19 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
 
 void MlsdbProvider::tryFetchOnlinePosition()
 {
-    if (!m_mlsdbOnlineLocator) {
-        m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
-        connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
-                this, &MlsdbProvider::onlineLocationFound);
-        connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
-                this, &MlsdbProvider::onlineLocationError);
-    }
     QList<CellPositioningData> cellIds = seenCellIds();
-    if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
-        return;
+
+    if (m_onlinePositioningEnabled) {
+        if (!m_mlsdbOnlineLocator) {
+            m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
+            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
+                    this, &MlsdbProvider::onlineLocationFound);
+            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
+                    this, &MlsdbProvider::onlineLocationError);
+        }
+        if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
+            return;
+        }
     }
 
     // fall back to using offline position
@@ -493,8 +498,12 @@ void MlsdbProvider::serviceUnregistered(const QString &service)
 
 void MlsdbProvider::updatePositioningEnabled()
 {
+    bool positioningEnabled = false;
+    bool cellPositioningEnabled = false;
+    getEnabled(&positioningEnabled, &cellPositioningEnabled, &m_onlinePositioningEnabled);
+
     bool previous = m_positioningEnabled;
-    bool enabled = positioningEnabled();
+    bool enabled = positioningEnabled && cellPositioningEnabled;
     if (previous == enabled) {
         // the change to the location settings file doesn't affect this plugin.
         return;
@@ -586,18 +595,21 @@ void MlsdbProvider::setStatus(MlsdbProvider::Status status)
 }
 
 /*
-    Returns true if positioning is enabled, otherwise returns false.
-
-    Currently checks the state of the Location enabled setting and
-    the MLS enabled setting.
+    Checks the state of the Location enabled setting,
+    the MLS enabled setting, and the MLS online_enabled setting.
 */
-bool MlsdbProvider::positioningEnabled()
+void MlsdbProvider::getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled)
 {
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
-    bool positioningEnabled = settings.value(LocationSettingsEnabledKey, false).toBool();
-    bool mlsEnabled = settings.value(LocationSettingsMlsEnabledKey, false).toBool()
-                   || settings.value(LocationSettingsOldMlsEnabledKey, false).toBool();
-    return positioningEnabled && mlsEnabled;
+
+    *positioningEnabled = settings.value(LocationSettingsEnabledKey, false).toBool();
+
+    *cellPositioningEnabled = *positioningEnabled
+                            && (settings.value(LocationSettingsMlsEnabledKey, false).toBool()
+                             || settings.value(LocationSettingsOldMlsEnabledKey, false).toBool());
+
+    *onlinePositioningEnabled = *cellPositioningEnabled
+                            && settings.value(LocationSettingsMlsOnlineEnabledKey, false).toBool();
 }
 
 quint32 MlsdbProvider::minimumRequestedUpdateInterval() const
