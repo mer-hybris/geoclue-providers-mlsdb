@@ -12,6 +12,7 @@
 
 #include "mlsdbprovider.h"
 
+#include "mlsdbonlinelocator.h"
 #include "geoclue_adaptor.h"
 #include "position_adaptor.h"
 
@@ -75,6 +76,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_positioningEnabled(false),
     m_positioningStarted(false),
     m_status(StatusUnavailable),
+    m_mlsdbOnlineLocator(0),
     m_cellWatcher(new QOfonoExtCellWatcher(this))
 {
     if (staticProvider)
@@ -289,6 +291,54 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 
 void MlsdbProvider::calculatePositionAndEmitLocation()
 {
+    tryFetchOnlinePosition();
+}
+
+void MlsdbProvider::tryFetchOnlinePosition()
+{
+    if (!m_mlsdbOnlineLocator) {
+        m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
+        connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
+                this, &MlsdbProvider::onlineLocationFound);
+        connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
+                this, &MlsdbProvider::onlineLocationError);
+    }
+    QList<CellPositioningData> cellIds = seenCellIds();
+    if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
+        return;
+    }
+
+    // fall back to using offline position
+    updateLocationFromCells(cellIds);
+}
+
+void MlsdbProvider::onlineLocationFound(double latitude, double longitude, double accuracy)
+{
+    qCDebug(lcGeoclueMlsdbPosition) << "Location from MLS online:" << latitude << longitude << accuracy;
+
+    Location deviceLocation;
+    deviceLocation.setTimestamp(QDateTime::currentMSecsSinceEpoch());
+    deviceLocation.setLatitude(latitude);
+    deviceLocation.setLongitude(longitude);
+
+    Accuracy positionAccuracy;
+    positionAccuracy.setHorizontal(accuracy);
+    deviceLocation.setAccuracy(positionAccuracy);
+
+    setLocation(deviceLocation);
+}
+
+void MlsdbProvider::onlineLocationError(const QString &errorString)
+{
+    qCDebug(lcGeoclueMlsdbPosition) << "Cannot fetch position from online source:" << errorString
+                                    << ", falling back to offline source";
+
+    // fall back to using offline position
+    updateLocationFromCells(seenCellIds());
+}
+
+QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
+{
     qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
     quint32 maxNeighborSignalStrength = 1;
@@ -334,7 +384,11 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
             seenCellIds.insert(cell.uniqueCellId);
         }
     }
+    return cells;
+}
 
+void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &cells)
+{
     // determine which cells we have an accurate location for, from MLSDB data.
     double totalSignalStrength = 0.0;
     QMap<MlsdbUniqueCellId, MlsdbCoords> cellLocations;
