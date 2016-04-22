@@ -74,6 +74,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_positioningStarted(false),
     m_status(StatusUnavailable),
     m_mlsdbOnlineLocator(0),
+    m_onlinePositioningEnabled(false),
     m_cellWatcher(new QOfonoExtCellWatcher(this))
 {
     if (staticProvider)
@@ -293,18 +294,21 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
 
 void MlsdbProvider::tryFetchOnlinePosition()
 {
-    if (!m_mlsdbOnlineLocator) {
-        m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
-        connect(m_mlsdbOnlineLocator, SIGNAL(locationFound(double,double,double)),
-                SLOT(onlineLocationFound(double,double,double)));
-        connect(m_mlsdbOnlineLocator, SIGNAL(error(QString)),
-                SLOT(onlineLocationError(QString)));
-    }
     QList<CellPositioningData> cellIds = seenCellIds();
-    if (!m_mlsdbOnlineLocator->findLocation(cellIds)) {
-        // fall back to using offline position
-        updateLocationFromCells(cellIds);
+    if (m_onlinePositioningEnabled) {
+        if (!m_mlsdbOnlineLocator) {
+            m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
+            connect(m_mlsdbOnlineLocator, SIGNAL(locationFound(double,double,double)),
+                    SLOT(onlineLocationFound(double,double,double)));
+            connect(m_mlsdbOnlineLocator, SIGNAL(error(QString)),
+                    SLOT(onlineLocationError(QString)));
+        }
+        if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
+            return;
+        }
     }
+    // fall back to using offline position
+    updateLocationFromCells(cellIds);
 }
 
 void MlsdbProvider::onlineLocationFound(double latitude, double longitude, double accuracy)
@@ -488,8 +492,12 @@ void MlsdbProvider::serviceUnregistered(const QString &service)
 
 void MlsdbProvider::updatePositioningEnabled()
 {
+    bool positioningEnabled = false;
+    bool cellPositioningEnabled = false;
+    getEnabled(&positioningEnabled, &cellPositioningEnabled, &m_onlinePositioningEnabled);
+
     bool previous = m_positioningEnabled;
-    bool enabled = positioningEnabled();
+    bool enabled = positioningEnabled && cellPositioningEnabled;
     if (previous == enabled) {
         // the change to the location settings file doesn't affect this plugin.
         return;
@@ -581,18 +589,21 @@ void MlsdbProvider::setStatus(MlsdbProvider::Status status)
 }
 
 /*
-    Returns true if positioning is enabled, otherwise returns false.
-
-    Currently checks the state of the Location enabled setting and
-    the cell_id_positioning_enabled setting.
+ * Reads the configuration in location.conf.
 */
-bool MlsdbProvider::positioningEnabled()
+void MlsdbProvider::getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled)
 {
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("location"));
-    bool enabled = settings.value(QStringLiteral("enabled"), false).toBool();
-    bool cellIdPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), true).toBool();
-    return enabled && cellIdPositioningEnabled;
+    if (positioningEnabled) {
+        *positioningEnabled = settings.value(QStringLiteral("enabled"), false).toBool();
+    }
+    if (cellPositioningEnabled) {
+        *cellPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), true).toBool();
+    }
+    if (onlinePositioningEnabled) {
+        *onlinePositioningEnabled = settings.value(QStringLiteral("mls_online_positioning_enabled"), false).toBool();
+    }
 }
 
 quint32 MlsdbProvider::minimumRequestedUpdateInterval() const

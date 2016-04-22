@@ -125,7 +125,7 @@ private:
     void startPositioningIfNeeded();
     void stopPositioningIfNeeded();
     void setStatus(Status status);
-    bool positioningEnabled();
+    void getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled);
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
 
@@ -142,6 +142,7 @@ private:
     Location m_lastLocation;
 
     MlsdbOnlineLocator *m_mlsdbOnlineLocator;
+    bool m_onlinePositioningEnabled;
 
     QOfonoExtCellWatcher *m_cellWatcher;
     QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache
