@@ -11,6 +11,8 @@ BuildRequires: pkgconfig(Qt5DBus)
 BuildRequires: pkgconfig(Qt5Network)
 BuildRequires: pkgconfig(qofono-qt5)
 BuildRequires: pkgconfig(qofonoext)
+BuildRequires: pkgconfig(connman-qt5)
+BuildRequires: pkgconfig(libsailfishkeyprovider)
 
 %description
 %{summary}.
