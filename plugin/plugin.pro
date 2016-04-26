@@ -12,6 +12,13 @@ PKGCONFIG += qofono-qt5 qofonoext connman-qt5 libsailfishkeyprovider
 
 LIBS += -lrt
 
+packagesExist(qt5-boostable) {
+    DEFINES += HAS_BOOSTER
+    PKGCONFIG += qt5-boostable
+} else {
+    warning("qt5-boostable not available; startup times will be slower")
+}
+
 # not installed
 dbus_geoclue.files = \
     org.freedesktop.Geoclue.xml \

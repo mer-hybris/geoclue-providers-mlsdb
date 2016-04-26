@@ -5,4 +5,4 @@ on the device, and does a crude triangulation to determine the
 likely position of the device.
 
 To get debug output from the plugin, run it via:
-QT_LOGGING_RULES="*.debug=true" /usr/libexec/geoclue-mlsdb
+QT_LOGGING_RULES="*.debug=true" devel-su -p /usr/libexec/geoclue-mlsdb
