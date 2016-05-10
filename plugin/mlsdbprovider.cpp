@@ -40,6 +40,9 @@ namespace {
     const quint32 MinimumInterval = 10000;      // 10s
     const quint32 PreferredInitialFixTime = 0;  //  0s
     const QString LocationSettingsFile = QStringLiteral("/etc/location/location.conf");
+    const QString LocationSettingsEnabledKey = QStringLiteral("location/enabled");
+    const QString LocationSettingsMlsEnabledKey = QStringLiteral("location/mls/enabled");
+    const QString LocationSettingsOldMlsEnabledKey = QStringLiteral("location/cell_id_positioning_enabled"); // deprecated key
 }
 
 QDBusArgument &operator<<(QDBusArgument &argument, const Accuracy &accuracy)
@@ -532,15 +535,15 @@ void MlsdbProvider::setStatus(MlsdbProvider::Status status)
     Returns true if positioning is enabled, otherwise returns false.
 
     Currently checks the state of the Location enabled setting and
-    the cell_id_positioning_enabled setting.
+    the MLS enabled setting.
 */
 bool MlsdbProvider::positioningEnabled()
 {
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("location"));
-    bool enabled = settings.value(QStringLiteral("enabled"), false).toBool();
-    bool cellIdPositioningEnabled = settings.value(QStringLiteral("cell_id_positioning_enabled"), true).toBool();
-    return enabled && cellIdPositioningEnabled;
+    bool positioningEnabled = settings.value(LocationSettingsEnabledKey, false).toBool();
+    bool mlsEnabled = settings.value(LocationSettingsMlsEnabledKey, false).toBool()
+                   || settings.value(LocationSettingsOldMlsEnabledKey, false).toBool();
+    return positioningEnabled && mlsEnabled;
 }
 
 quint32 MlsdbProvider::minimumRequestedUpdateInterval() const
