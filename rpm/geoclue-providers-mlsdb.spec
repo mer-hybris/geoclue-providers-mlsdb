@@ -15,8 +15,16 @@ BuildRequires: pkgconfig(connman-qt5)
 BuildRequires: pkgconfig(libsailfishkeyprovider)
 BuildRequires: pkgconfig(qt5-boostable)
 Requires: mapplauncherd-qt5
+Requires: %{name}-agreements
 
 %description
+%{summary}.
+
+%package agreements
+Summary:  Mozilla Location Services privacy policy agreements
+Group:    System/Libraries
+
+%description agreements
 %{summary}.
 
 %package tool
@@ -70,6 +78,12 @@ make INSTALL_ROOT=%{buildroot} install
 %{_libexecdir}/geoclue-mlsdb
 %{_datadir}/dbus-1/services/org.freedesktop.Geoclue.Providers.Mlsdb.service
 %{_datadir}/geoclue-providers/geoclue-mlsdb.provider
+
+%files agreements
+%defattr(-,root,root,-)
+%dir %{_datadir}/geoclue-provider-mlsdb/agreements
+%{_datadir}/geoclue-provider-mlsdb/agreements/mls_consent_en_GB.txt
+
 
 %files tool
 %defattr(-,root,root,-)
