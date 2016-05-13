@@ -17,6 +17,7 @@
 #include <QtCore/QJsonParseError>
 #include <QtCore/QVariantMap>
 #include <QtCore/QTextStream>
+#include <QtCore/QDateTime>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
@@ -27,6 +28,8 @@
 #include <qofonoextmodemmanager.h>
 #include <networkmanager.h>
 #include <networkservice.h>
+
+#define REQUEST_REPLY_TIMEOUT_INTERVAL 10000 /* 10 seconds */
 
 /*
  * HTTP requests are sent based on the Mozilla Location Services API.
@@ -41,11 +44,15 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_modemManager(new QOfonoExtModemManager(this))
     , m_simManager(0)
     , m_networkManager(new NetworkManager(this))
+    , m_currentReply(0)
 {
     connect(m_nam, SIGNAL(finished(QNetworkReply*)), SLOT(requestOnlineLocationFinished(QNetworkReply*)));
     connect(m_modemManager, SIGNAL(enabledModemsChanged(QStringList)), SLOT(enabledModemsChanged(QStringList)));
     connect(m_modemManager, SIGNAL(defaultVoiceModemChanged(QString)), SLOT(defaultVoiceModemChanged(QString)));
     connect(m_networkManager, SIGNAL(servicesChanged()), SLOT(networkServicesChanged()));
+    connect(&m_replyTimer, &QTimer::timeout, this, &MlsdbOnlineLocator::timeoutReply);
+    m_replyTimer.setInterval(REQUEST_REPLY_TIMEOUT_INTERVAL);
+    m_replyTimer.setSingleShot(true);
 }
 
 MlsdbOnlineLocator::~MlsdbOnlineLocator()
@@ -76,6 +83,11 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
         return false;
     }
 
+    if (m_currentReply) {
+        qCDebug(lcGeoclueMlsdbOnline) << "Previous request still in progress";
+        return true;
+    }
+
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -93,28 +105,45 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
 
     QJsonDocument doc = QJsonDocument::fromVariant(map);
     QByteArray json = doc.toJson();
-    QNetworkReply *reply = m_nam->post(req, json);
-    if (reply->error() != QNetworkReply::NoError) {
-        qCDebug(lcGeoclueMlsdbOnline) << "POST request failed:" << reply->errorString();
+    m_currentReply = m_nam->post(req, json);
+    if (m_currentReply->error() != QNetworkReply::NoError) {
+        qCDebug(lcGeoclueMlsdbOnline) << "POST request failed:" << m_currentReply->errorString();
         return false;
     }
-    qCDebug(lcGeoclueMlsdbOnline) << "Sent request with data:" << json;
+    m_replyTimer.start();
+    qCDebug(lcGeoclueMlsdbOnline) << "Sent request at:" << QDateTime::currentDateTimeUtc().toTime_t() << "with data:" << json;
     return true;
 }
 
 void MlsdbOnlineLocator::requestOnlineLocationFinished(QNetworkReply *reply)
 {
+    if (m_currentReply != reply) {
+        qCDebug(lcGeoclueMlsdbOnline) << "Received finished signal for unknown request reply!";
+        return;
+    }
+
     QString errorString;
-    if (reply->error() == QNetworkReply::NoError) {
-        QByteArray data = reply->readAll();
+    if (m_currentReply->property("timedOut").toBool()) {
+        emit error(QStringLiteral("manual timeout"));
+    } else if (m_currentReply->error() == QNetworkReply::NoError) {
+        QByteArray data = m_currentReply->readAll();
         qCDebug(lcGeoclueMlsdbOnline) << "MLS response:" << data;
         if (!readServerResponseData(data, &errorString)) {
             emit error(errorString);
         }
     } else {
-        emit error(reply->errorString());
+        emit error(m_currentReply->errorString());
     }
-    reply->deleteLater();
+    m_currentReply->deleteLater();
+    m_currentReply = 0;
+    m_replyTimer.stop();
+}
+
+void MlsdbOnlineLocator::timeoutReply()
+{
+    qCDebug(lcGeoclueMlsdbOnline) << "Request timed out at:" << QDateTime::currentDateTimeUtc().toTime_t();
+    m_currentReply->setProperty("timedOut", QVariant::fromValue<bool>(true));
+    m_currentReply->abort(); // will emit finished, the finished slot will deleteLater().
 }
 
 bool MlsdbOnlineLocator::readServerResponseData(const QByteArray &data, QString *errorString)

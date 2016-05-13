@@ -16,6 +16,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QList>
 #include <QtCore/QVector>
+#include <QtCore/QTimer>
 
 #include "mlsdbprovider.h"
 
@@ -49,6 +50,7 @@ private Q_SLOTS:
     void enabledModemsChanged(const QStringList &modems);
     void defaultVoiceModemChanged(const QString &modem);
     void requestOnlineLocationFinished(QNetworkReply *reply);
+    void timeoutReply();
 
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
@@ -65,6 +67,8 @@ private:
     QOfonoExtModemManager *m_modemManager;
     QOfonoSimManager *m_simManager;
     NetworkManager *m_networkManager;
+    QNetworkReply *m_currentReply;
+    QTimer m_replyTimer;
 
     QVector<NetworkService*> m_wifiServices;
     QString m_mlsKey;
