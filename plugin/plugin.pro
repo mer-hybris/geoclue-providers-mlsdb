@@ -8,9 +8,16 @@ target.path = /usr/libexec
 QT = core dbus network
 
 CONFIG += link_pkgconfig
-PKGCONFIG += qofono-qt5 qofonoext
+PKGCONFIG += qofono-qt5 qofonoext connman-qt5 libsailfishkeyprovider
 
 LIBS += -lrt
+
+packagesExist(qt5-boostable) {
+    DEFINES += HAS_BOOSTER
+    PKGCONFIG += qt5-boostable
+} else {
+    warning("qt5-boostable not available; startup times will be slower")
+}
 
 # not installed
 dbus_geoclue.files = \
@@ -31,11 +38,13 @@ geoclue_provider.path = /usr/share/geoclue-providers
 include (../common/common.pri)
 HEADERS += \
     mlsdbprovider.h \
+    mlsdbonlinelocator.h \
     locationtypes.h
 
 SOURCES += \
     main.cpp \
-    mlsdbprovider.cpp
+    mlsdbprovider.cpp \
+    mlsdbonlinelocator.cpp
 
 OTHER_FILES = \
     $${dbus_geoclue.files} \

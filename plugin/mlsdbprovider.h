@@ -45,6 +45,7 @@ BuildRequires: pkgconfig(android-headers)
 
 QT_FORWARD_DECLARE_CLASS(QDBusServiceWatcher)
 class QOfonoExtCellWatcher;
+class MlsdbOnlineLocator;
 
 /*
  * The geoclue-mlsdb provider provides position information
@@ -60,6 +61,11 @@ class MlsdbProvider : public QObject, public QDBusContext
     Q_OBJECT
 
 public:
+    struct CellPositioningData {
+        MlsdbUniqueCellId uniqueCellId;
+        quint32 signalStrength;
+    };
+
     explicit MlsdbProvider(QObject *parent = 0);
     ~MlsdbProvider();
 
@@ -108,6 +114,8 @@ private Q_SLOTS:
     void serviceUnregistered(const QString &service);
     void updatePositioningEnabled();
     void cellularNetworkRegistrationChanged();
+    void onlineLocationFound(double latitude, double longitude, double accuracy);
+    void onlineLocationError(const QString &errorString);
 
 protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE; // QObject
@@ -117,9 +125,13 @@ private:
     void startPositioningIfNeeded();
     void stopPositioningIfNeeded();
     void setStatus(Status status);
-    bool positioningEnabled();
+    void getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled);
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
+
+    void tryFetchOnlinePosition();
+    QList<CellPositioningData> seenCellIds() const;
+    void updateLocationFromCells(const QList<CellPositioningData> &cells);
     bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);
 
     QFileSystemWatcher m_locationSettingsWatcher;
@@ -129,10 +141,9 @@ private:
     Location m_currentLocation;
     Location m_lastLocation;
 
-    struct CellPositioningData {
-        MlsdbUniqueCellId uniqueCellId;
-        quint32 signalStrength;
-    };
+    MlsdbOnlineLocator *m_mlsdbOnlineLocator;
+    bool m_onlinePositioningEnabled;
+
     QOfonoExtCellWatcher *m_cellWatcher;
     QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache
     QSet<MlsdbUniqueCellId> m_knownCellIdsWithUnknownLocations;
