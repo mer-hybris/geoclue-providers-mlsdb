@@ -16,7 +16,7 @@
 
 #include "mlsdbprovider.h"
 
-int main(int argc, char *argv[])
+Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     QLoggingCategory::setFilterRules(QStringLiteral("geoclue.provider.mlsdb.debug=false\n"
                                                     "geoclue.provider.mlsdb.position.debug=false"));
