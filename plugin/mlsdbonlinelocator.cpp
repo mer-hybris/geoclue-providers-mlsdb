@@ -213,7 +213,7 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
             cellTowerMap["radioType"] = "gsm";
             break;
         case MLSDB_CELL_TYPE_UMTS:
-            cellTowerMap["wcdma"] = "gsm";
+            cellTowerMap["radioType"] = "wcdma";
             break;
         default:
             // type currently unsupported by MLS, don't add it to the field
