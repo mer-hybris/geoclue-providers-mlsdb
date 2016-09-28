@@ -24,9 +24,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     MlsdbProvider provider;
     QDBusConnection connection = QDBusConnection::sessionBus();
-    if (!connection.registerService(QStringLiteral("org.freedesktop.Geoclue.Providers.Mlsdb")))
-        qFatal("Failed to register service org.freedesktop.Geoclue.Providers.Mlsdb");
     if (!connection.registerObject(QStringLiteral("/org/freedesktop/Geoclue/Providers/Mlsdb"), &provider))
         qFatal("Failed to register object /org/freedesktop/Geoclue/Providers/Mlsdb");
+    if (!connection.registerService(QStringLiteral("org.freedesktop.Geoclue.Providers.Mlsdb")))
+        qFatal("Failed to register service org.freedesktop.Geoclue.Providers.Mlsdb");
     return a.exec();
 }
