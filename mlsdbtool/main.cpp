@@ -79,6 +79,15 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
 
 // Europe
 
+    BoundingBox aland_islands_bb;
+    aland_islands_bb.latShift = 0.0;
+    aland_islands_bb.lonShift = 0.0;
+    aland_islands_bb.lowerLeft.lat = 59.736;
+    aland_islands_bb.lowerLeft.lon = 19.263;
+    aland_islands_bb.upperRight.lat = 60.666;
+    aland_islands_bb.upperRight.lon = 21.324;
+    retn.insert(QLatin1String("Aland_Islands"), aland_islands_bb);
+
     BoundingBox albania_bb;
     albania_bb.latShift = 0.0;
     albania_bb.lonShift = 0.0;
@@ -87,6 +96,474 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     albania_bb.upperRight.lat = 42.688;
     albania_bb.upperRight.lon = 21.020;
     retn.insert(QLatin1String("Albania"), albania_bb);
+
+    BoundingBox andorra_bb;
+    andorra_bb.latShift = 0.0;
+    andorra_bb.lonShift = 0.0;
+    andorra_bb.lowerLeft.lat = 39.644;
+    andorra_bb.lowerLeft.lon = 1.414;
+    andorra_bb.upperRight.lat = 41.248;
+    andorra_bb.upperRight.lon = 1.787;
+    retn.insert(QLatin1String("Andorra"), andorra_bb);
+
+    BoundingBox armenia_bb;
+    armenia_bb.latShift = 0.0;
+    armenia_bb.lonShift = 0.0;
+    armenia_bb.lowerLeft.lat = 38.741;
+    armenia_bb.lowerLeft.lon = 43.583;
+    armenia_bb.upperRight.lat = 41.248;
+    armenia_bb.upperRight.lon = 46.505;
+    retn.insert(QLatin1String("Armenia"), armenia_bb);
+
+    BoundingBox austria_bb;
+    austria_bb.latShift = 0.0;
+    austria_bb.lonShift = 0.0;
+    austria_bb.lowerLeft.lat = 46.432;
+    austria_bb.lowerLeft.lon = 9.480;
+    austria_bb.upperRight.lat = 49.039;
+    austria_bb.upperRight.lon = 16.980;
+    retn.insert(QLatin1String("Austria"), austria_bb);
+
+    BoundingBox azerbaijan_bb;
+    azerbaijan_bb.latShift = 0.0;
+    azerbaijan_bb.lonShift = 0.0;
+    azerbaijan_bb.lowerLeft.lat = 38.2704;
+    azerbaijan_bb.lowerLeft.lon = 44.794;
+    azerbaijan_bb.upperRight.lat = 41.861;
+    azerbaijan_bb.upperRight.lon = 50.393;
+    retn.insert(QLatin1String("Azerbaijan"), azerbaijan_bb);
+
+    BoundingBox belarus_bb;
+    belarus_bb.latShift = 0.0;
+    belarus_bb.lonShift = 0.0;
+    belarus_bb.lowerLeft.lat = 51.320;
+    belarus_bb.lowerLeft.lon = 23.199;
+    belarus_bb.upperRight.lat = 56.1691;
+    belarus_bb.upperRight.lon = 32.694;
+    retn.insert(QLatin1String("Belarus"), belarus_bb);
+
+    BoundingBox belgium_bb;
+    belgium_bb.latShift = 0.0;
+    belgium_bb.lonShift = 0.0;
+    belgium_bb.lowerLeft.lat = 49.529;
+    belgium_bb.lowerLeft.lon = 2.514;
+    belgium_bb.upperRight.lat = 51.475;
+    belgium_bb.upperRight.lon = 6.157;
+    retn.insert(QLatin1String("Belgium"), belgium_bb);
+
+    BoundingBox bosnia_and_herzegovina_bb;
+    bosnia_and_herzegovina_bb.latShift = 0.0;
+    bosnia_and_herzegovina_bb.lonShift = 0.0;
+    bosnia_and_herzegovina_bb.lowerLeft.lat = 42.650;
+    bosnia_and_herzegovina_bb.lowerLeft.lon = 15.750;
+    bosnia_and_herzegovina_bb.upperRight.lat = 45.234;
+    bosnia_and_herzegovina_bb.upperRight.lon = 19.600;
+    retn.insert(QLatin1String("Bosnia_and_Herzegovina"), bosnia_and_herzegovina_bb);
+
+    BoundingBox bulgaria_bb;
+    bulgaria_bb.latShift = 0.0;
+    bulgaria_bb.lonShift = 0.0;
+    bulgaria_bb.lowerLeft.lat = 41.234;
+    bulgaria_bb.lowerLeft.lon = 22.381;
+    bulgaria_bb.upperRight.lat = 44.235;
+    bulgaria_bb.upperRight.lon = 28.558;
+    retn.insert(QLatin1String("Bulgaria"), bulgaria_bb);
+
+    BoundingBox croatia_bb;
+    croatia_bb.latShift = 0.0;
+    croatia_bb.lonShift = 0.0;
+    croatia_bb.lowerLeft.lat = 42.490;
+    croatia_bb.lowerLeft.lon = 13.657;
+    croatia_bb.upperRight.lat = 46.504;
+    croatia_bb.upperRight.lon = 19.390;
+    retn.insert(QLatin1String("Croatia"), croatia_bb);
+
+    BoundingBox cyprus_bb;
+    cyprus_bb.latShift = 0.0;
+    cyprus_bb.lonShift = 0.0;
+    cyprus_bb.lowerLeft.lat = 34.572;
+    cyprus_bb.lowerLeft.lon = 32.257;
+    cyprus_bb.upperRight.lat = 35.173;
+    cyprus_bb.upperRight.lon = 34.005;
+    retn.insert(QLatin1String("Cyprus"), cyprus_bb);
+
+    BoundingBox czech_republic_bb;
+    czech_republic_bb.latShift = 0.0;
+    czech_republic_bb.lonShift = 0.0;
+    czech_republic_bb.lowerLeft.lat = 48.555;
+    czech_republic_bb.lowerLeft.lon = 12.240;
+    czech_republic_bb.upperRight.lat = 51.117;
+    czech_republic_bb.upperRight.lon = 18.853;
+    retn.insert(QLatin1String("Czech_Republic"), czech_republic_bb);
+
+    BoundingBox denmark_bb;
+    denmark_bb.latShift = 0.0;
+    denmark_bb.lonShift = 0.0;
+    denmark_bb.lowerLeft.lat = 54.800;
+    denmark_bb.lowerLeft.lon = 8.090;
+    denmark_bb.upperRight.lat = 57.7300;
+    denmark_bb.upperRight.lon = 12.690;
+    retn.insert(QLatin1String("Denmark"), denmark_bb);
+
+    BoundingBox estonia_bb;
+    estonia_bb.latShift = 0.0;
+    estonia_bb.lonShift = 0.0;
+    estonia_bb.lowerLeft.lat = 57.475;
+    estonia_bb.lowerLeft.lon = 23.340;
+    estonia_bb.upperRight.lat = 59.611;
+    estonia_bb.upperRight.lon = 28.132;
+    retn.insert(QLatin1String("Estonia"), estonia_bb);
+
+    BoundingBox faroe_islands_bb;
+    faroe_islands_bb.latShift = 0.0;
+    faroe_islands_bb.lonShift = 0.0;
+    faroe_islands_bb.lowerLeft.lat = 61.395;
+    faroe_islands_bb.lowerLeft.lon = -7.681;
+    faroe_islands_bb.upperRight.lat = 62.401;
+    faroe_islands_bb.upperRight.lon = -6.259;
+    retn.insert(QLatin1String("Faroe_Islands"), faroe_islands_bb);
+
+    BoundingBox finland_bb;
+    finland_bb.latShift = 0.0;
+    finland_bb.lonShift = 0.0;
+    finland_bb.lowerLeft.lat = 59.45;
+    finland_bb.lowerLeft.lon = 18.0;
+    finland_bb.upperRight.lat = 70.083;
+    finland_bb.upperRight.lon = 33.35;
+    retn.insert(QLatin1String("Finland"), finland_bb);
+
+    BoundingBox france_bb;
+    france_bb.latShift = 0.0;
+    france_bb.lonShift = 0.0;
+    france_bb.lowerLeft.lat = 2.0534;
+    france_bb.lowerLeft.lon = -54.5248;
+    france_bb.upperRight.lat = 51.149;
+    france_bb.upperRight.lon = 9.560;
+    retn.insert(QLatin1String("France"), france_bb);
+
+    BoundingBox georgia_bb;
+    georgia_bb.latShift = 0.0;
+    georgia_bb.lonShift = 0.0;
+    georgia_bb.lowerLeft.lat = 41.064;
+    georgia_bb.lowerLeft.lon = 39.955;
+    georgia_bb.upperRight.lat = 43.553;
+    georgia_bb.upperRight.lon = 46.648;
+    retn.insert(QLatin1String("Georgia"), georgia_bb);
+
+    BoundingBox germany_bb;
+    germany_bb.latShift = 0.0;
+    germany_bb.lonShift = 0.0;
+    germany_bb.lowerLeft.lat = 47.302;
+    germany_bb.lowerLeft.lon = 5.989;
+    germany_bb.upperRight.lat = 54.983;
+    germany_bb.upperRight.lon = 15.017;
+    retn.insert(QLatin1String("Germany"), germany_bb);
+
+    BoundingBox gibraltar_bb;
+    gibraltar_bb.latShift = 0.0;
+    gibraltar_bb.lonShift = 0.0;
+    gibraltar_bb.lowerLeft.lat = 36.108;
+    gibraltar_bb.lowerLeft.lon = -5.358;
+    gibraltar_bb.upperRight.lat = 36.156;
+    gibraltar_bb.upperRight.lon = -5.339;
+    retn.insert(QLatin1String("Gibraltar"), gibraltar_bb);
+
+    BoundingBox greece_bb;
+    greece_bb.latShift = 0.0;
+    greece_bb.lonShift = 0.0;
+    greece_bb.lowerLeft.lat = 34.920;
+    greece_bb.lowerLeft.lon = 20.150;
+    greece_bb.upperRight.lat = 41.827;
+    greece_bb.upperRight.lon = 26.604;
+    retn.insert(QLatin1String("Greece"), greece_bb);
+
+    BoundingBox guernsey_bb;
+    guernsey_bb.latShift = 0.0;
+    guernsey_bb.lonShift = 0.0;
+    guernsey_bb.lowerLeft.lat = 49.406;
+    guernsey_bb.lowerLeft.lon = -2.675;
+    guernsey_bb.upperRight.lat = 49.739;
+    guernsey_bb.upperRight.lon = -2.164;
+    retn.insert(QLatin1String("Guernsey"), guernsey_bb);
+
+    BoundingBox hungary_bb;
+    hungary_bb.latShift = 0.0;
+    hungary_bb.lonShift = 0.0;
+    hungary_bb.lowerLeft.lat = 45.759;
+    hungary_bb.lowerLeft.lon = 16.202;
+    hungary_bb.upperRight.lat = 48.624;
+    hungary_bb.upperRight.lon = 22.711;
+    retn.insert(QLatin1String("Hungary"), hungary_bb);
+
+    BoundingBox iceland_bb;
+    iceland_bb.latShift = 0.0;
+    iceland_bb.lonShift = 0.0;
+    iceland_bb.lowerLeft.lat = 63.496;
+    iceland_bb.lowerLeft.lon = -24.326;
+    iceland_bb.upperRight.lat = 66.526;
+    iceland_bb.upperRight.lon = -13.609;
+    retn.insert(QLatin1String("Iceland"), iceland_bb);
+
+    BoundingBox ireland_bb;
+    ireland_bb.latShift = 0.0;
+    ireland_bb.lonShift = 0.0;
+    ireland_bb.lowerLeft.lat = 51.669;
+    ireland_bb.lowerLeft.lon = -9.977;
+    ireland_bb.upperRight.lat = 55.132;
+    ireland_bb.upperRight.lon = -6.030;
+    retn.insert(QLatin1String("Ireland"), ireland_bb);
+
+    BoundingBox isle_of_man_bb;
+    isle_of_man_bb.latShift = 0.0;
+    isle_of_man_bb.lonShift = 0.0;
+    isle_of_man_bb.lowerLeft.lat = 54.045;
+    isle_of_man_bb.lowerLeft.lon = -4.830;
+    isle_of_man_bb.upperRight.lat = 54.419;
+    isle_of_man_bb.upperRight.lon = -4.310;
+    retn.insert(QLatin1String("Isle_of_Man"), isle_of_man_bb);
+
+    BoundingBox italy_bb;
+    italy_bb.latShift = 0.0;
+    italy_bb.lonShift = 0.0;
+    italy_bb.lowerLeft.lat = 36.620;
+    italy_bb.lowerLeft.lon = 6.745;
+    italy_bb.upperRight.lat = 47.115;
+    italy_bb.upperRight.lon = 18.480;
+    retn.insert(QLatin1String("Italy"), italy_bb);
+
+    BoundingBox jersey_bb;
+    jersey_bb.latShift = 0.0;
+    jersey_bb.lonShift = 0.0;
+    jersey_bb.lowerLeft.lat = 49.162;
+    jersey_bb.lowerLeft.lon = -2.255;
+    jersey_bb.upperRight.lat = 49.262;
+    jersey_bb.upperRight.lon = -2.011;
+    retn.insert(QLatin1String("Jersey"), jersey_bb);
+
+    BoundingBox kazakhstan_bb;
+    kazakhstan_bb.latShift = 0.0;
+    kazakhstan_bb.lonShift = 0.0;
+    kazakhstan_bb.lowerLeft.lat = 40.663;
+    kazakhstan_bb.lowerLeft.lon = 46.466;
+    kazakhstan_bb.upperRight.lat = 55.385;
+    kazakhstan_bb.upperRight.lon = 87.360;
+    retn.insert(QLatin1String("Kazakhstan"), kazakhstan_bb);
+
+    BoundingBox kosovo_bb;
+    kosovo_bb.latShift = 0.0;
+    kosovo_bb.lonShift = 0.0;
+    kosovo_bb.lowerLeft.lat = 42.111;
+    kosovo_bb.lowerLeft.lon = 20.787;
+    kosovo_bb.upperRight.lat = 43.153;
+    kosovo_bb.upperRight.lon = 21.514;
+    retn.insert(QLatin1String("Kosovo"), kosovo_bb);
+
+    BoundingBox latvia_bb;
+    latvia_bb.latShift = 0.0;
+    latvia_bb.lonShift = 0.0;
+    latvia_bb.lowerLeft.lat = 55.615;
+    latvia_bb.lowerLeft.lon = 21.056;
+    latvia_bb.upperRight.lat = 57.970;
+    latvia_bb.upperRight.lon = 28.176;
+    retn.insert(QLatin1String("Latvia"), latvia_bb);
+
+    BoundingBox liechtenstein_bb;
+    liechtenstein_bb.latShift = 0.0;
+    liechtenstein_bb.lonShift = 0.0;
+    liechtenstein_bb.lowerLeft.lat = 47.048;
+    liechtenstein_bb.lowerLeft.lon = 9.472;
+    liechtenstein_bb.upperRight.lat = 47.270;
+    liechtenstein_bb.upperRight.lon = 9.636;
+    retn.insert(QLatin1String("Liechtenstein"), liechtenstein_bb);
+
+    BoundingBox lithuania_bb;
+    lithuania_bb.latShift = 0.0;
+    lithuania_bb.lonShift = 0.0;
+    lithuania_bb.lowerLeft.lat = 53.906;
+    lithuania_bb.lowerLeft.lon = 21.056;
+    lithuania_bb.upperRight.lat = 56.373;
+    lithuania_bb.upperRight.lon = 26.588;
+    retn.insert(QLatin1String("Lithuania"), lithuania_bb);
+
+    BoundingBox luxembourg_bb;
+    luxembourg_bb.latShift = 0.0;
+    luxembourg_bb.lonShift = 0.0;
+    luxembourg_bb.lowerLeft.lat = 49.443;
+    luxembourg_bb.lowerLeft.lon = 5.674;
+    luxembourg_bb.upperRight.lat = 50.128;
+    luxembourg_bb.upperRight.lon = 6.243;
+    retn.insert(QLatin1String("Luxembourg"), luxembourg_bb);
+
+    BoundingBox macedonia_bb;
+    macedonia_bb.latShift = 0.0;
+    macedonia_bb.lonShift = 0.0;
+    macedonia_bb.lowerLeft.lat = 40.843;
+    macedonia_bb.lowerLeft.lon = 20.463;
+    macedonia_bb.upperRight.lat = 42.320;
+    macedonia_bb.upperRight.lon = 22.952;
+    retn.insert(QLatin1String("Macedonia"), macedonia_bb);
+
+    BoundingBox malta_bb;
+    malta_bb.latShift = 0.0;
+    malta_bb.lonShift = 0.0;
+    malta_bb.lowerLeft.lat = 35.786;
+    malta_bb.lowerLeft.lon = 14.183;
+    malta_bb.upperRight.lat = 36.082;
+    malta_bb.upperRight.lon = 14.577;
+    retn.insert(QLatin1String("Malta"), malta_bb);
+
+    BoundingBox moldova_bb;
+    moldova_bb.latShift = 0.0;
+    moldova_bb.lonShift = 0.0;
+    moldova_bb.lowerLeft.lat = 45.488;
+    moldova_bb.lowerLeft.lon = 26.619;
+    moldova_bb.upperRight.lat = 48.497;
+    moldova_bb.upperRight.lon = 30.025;
+    retn.insert(QLatin1String("Moldova"), moldova_bb);
+
+    BoundingBox monaco_bb;
+    monaco_bb.latShift = 0.0;
+    monaco_bb.lonShift = 0.0;
+    monaco_bb.lowerLeft.lat = 43.725;
+    monaco_bb.lowerLeft.lon = 7.409;
+    monaco_bb.upperRight.lat = 43.752;
+    monaco_bb.upperRight.lon = 7.439;
+    retn.insert(QLatin1String("Monaco"), monaco_bb);
+
+    BoundingBox montenegro_bb;
+    montenegro_bb.latShift = 0.0;
+    montenegro_bb.lonShift = 0.0;
+    montenegro_bb.lowerLeft.lat = 41.878;
+    montenegro_bb.lowerLeft.lon = 18.45;
+    montenegro_bb.upperRight.lat = 43.524;
+    montenegro_bb.upperRight.lon = 20.340;
+    retn.insert(QLatin1String("Montenegro"), montenegro_bb);
+
+    BoundingBox netherlands_bb;
+    netherlands_bb.latShift = 0.0;
+    netherlands_bb.lonShift = 0.0;
+    netherlands_bb.lowerLeft.lat = 50.804;
+    netherlands_bb.lowerLeft.lon = 3.315;
+    netherlands_bb.upperRight.lat = 53.510;
+    netherlands_bb.upperRight.lon = 7.092;
+    retn.insert(QLatin1String("Netherlands"), netherlands_bb);
+
+    BoundingBox norway_bb;
+    norway_bb.latShift = 0.0;
+    norway_bb.lonShift = 0.0;
+    norway_bb.lowerLeft.lat = 58.079;
+    norway_bb.lowerLeft.lon = 4.992;
+    norway_bb.upperRight.lat = 80.657;
+    norway_bb.upperRight.lon = 31.293;
+    retn.insert(QLatin1String("Norway"), norway_bb);
+
+    BoundingBox poland_bb;
+    poland_bb.latShift = 0.0;
+    poland_bb.lonShift = 0.0;
+    poland_bb.lowerLeft.lat = 49.027;
+    poland_bb.lowerLeft.lon = 14.075;
+    poland_bb.upperRight.lat = 54.851;
+    poland_bb.upperRight.lon = 24.030;
+    retn.insert(QLatin1String("Poland"), poland_bb);
+
+    BoundingBox portugal_bb;
+    portugal_bb.latShift = 0.0;
+    portugal_bb.lonShift = 0.0;
+    portugal_bb.lowerLeft.lat = 36.838;
+    portugal_bb.lowerLeft.lon = -9.527;
+    portugal_bb.upperRight.lat = 42.280;
+    portugal_bb.upperRight.lon = -6.389;
+    retn.insert(QLatin1String("Portugal"), portugal_bb);
+
+    BoundingBox romania_bb;
+    romania_bb.latShift = 0.0;
+    romania_bb.lonShift = 0.0;
+    romania_bb.lowerLeft.lat = 43.688;
+    romania_bb.lowerLeft.lon = 20.220;
+    romania_bb.upperRight.lat = 48.221;
+    romania_bb.upperRight.lon = 29.637;
+    retn.insert(QLatin1String("Romania"), romania_bb);
+
+    BoundingBox san_marino_bb;
+    san_marino_bb.latShift = 0.0;
+    san_marino_bb.lonShift = 0.0;
+    san_marino_bb.lowerLeft.lat = 43.893;
+    san_marino_bb.lowerLeft.lon = 12.403;
+    san_marino_bb.upperRight.lat = 43.992;
+    san_marino_bb.upperRight.lon = 12.517;
+    retn.insert(QLatin1String("San_Marino"), san_marino_bb);
+
+    BoundingBox serbia_bb;
+    serbia_bb.latShift = 0.0;
+    serbia_bb.lonShift = 0.0;
+    serbia_bb.lowerLeft.lat = 42.245;
+    serbia_bb.lowerLeft.lon = 18.830;
+    serbia_bb.upperRight.lat = 46.171;
+    serbia_bb.upperRight.lon = 22.986;
+    retn.insert(QLatin1String("Serbia"), serbia_bb);
+
+    BoundingBox slovakia_bb;
+    slovakia_bb.latShift = 0.0;
+    slovakia_bb.lonShift = 0.0;
+    slovakia_bb.lowerLeft.lat = 47.758;
+    slovakia_bb.lowerLeft.lon = 16.880;
+    slovakia_bb.upperRight.lat = 49.571;
+    slovakia_bb.upperRight.lon = 22.558;
+    retn.insert(QLatin1String("Slovakia"), slovakia_bb);
+
+    BoundingBox slovenia_bb;
+    slovenia_bb.latShift = 0.0;
+    slovenia_bb.lonShift = 0.0;
+    slovenia_bb.lowerLeft.lat = 45.452;
+    slovenia_bb.lowerLeft.lon = 13.698;
+    slovenia_bb.upperRight.lat = 46.852;
+    slovenia_bb.upperRight.lon = 16.565;
+    retn.insert(QLatin1String("Slovenia"), slovenia_bb);
+
+    BoundingBox spain_bb;
+    spain_bb.latShift = 0.0;
+    spain_bb.lonShift = 0.0;
+    spain_bb.lowerLeft.lat = 35.947;
+    spain_bb.lowerLeft.lon = -9.393;
+    spain_bb.upperRight.lat = 43.748;
+    spain_bb.upperRight.lon = 3.039;
+    retn.insert(QLatin1String("Spain"), spain_bb);
+
+    BoundingBox sweden_bb;
+    sweden_bb.latShift = 0.0;
+    sweden_bb.lonShift = 0.0;
+    sweden_bb.lowerLeft.lat = 55.362;
+    sweden_bb.lowerLeft.lon = 11.027;
+    sweden_bb.upperRight.lat = 69.106;
+    sweden_bb.upperRight.lon = 23.903;
+    retn.insert(QLatin1String("Sweden"), sweden_bb);
+
+    BoundingBox switzerland_bb;
+    switzerland_bb.latShift = 0.0;
+    switzerland_bb.lonShift = 0.0;
+    switzerland_bb.lowerLeft.lat = 45.777;
+    switzerland_bb.lowerLeft.lon = 6.023;
+    switzerland_bb.upperRight.lat = 47.831;
+    switzerland_bb.upperRight.lon = 10.443;
+    retn.insert(QLatin1String("Switzerland"), switzerland_bb);
+
+    BoundingBox ukraine_bb;
+    ukraine_bb.latShift = 0.0;
+    ukraine_bb.lonShift = 0.0;
+    ukraine_bb.lowerLeft.lat = 44.361;
+    ukraine_bb.lowerLeft.lon = 22.057;
+    ukraine_bb.upperRight.lat = 52.335;
+    ukraine_bb.upperRight.lon = 40.081;
+    retn.insert(QLatin1String("Ukraine"), ukraine_bb);
+
+    BoundingBox united_kingdom_bb;
+    united_kingdom_bb.latShift = 0.0;
+    united_kingdom_bb.lonShift = 0.0;
+    united_kingdom_bb.lowerLeft.lat = 49.960;
+    united_kingdom_bb.lowerLeft.lon = -7.572;
+    united_kingdom_bb.upperRight.lat = 58.635;
+    united_kingdom_bb.upperRight.lon = 1.681;
+    retn.insert(QLatin1String("United_Kingdom"), united_kingdom_bb);
 
     BoundingBox india_bb;
     india_bb.latShift = 0.0;
@@ -105,15 +582,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     australia_bb.upperRight.lat = -9.133;
     australia_bb.upperRight.lon = 168.0;
     retn.insert(QLatin1String("Australia"), australia_bb);
-
-    BoundingBox finland_bb;
-    finland_bb.latShift = 0.0;
-    finland_bb.lonShift = 0.0;
-    finland_bb.lowerLeft.lat = 59.45;
-    finland_bb.lowerLeft.lon = 18.0;
-    finland_bb.upperRight.lat = 70.083;
-    finland_bb.upperRight.lon = 33.35;
-    retn.insert(QLatin1String("Finland"), finland_bb);
 
     return retn;
 }
