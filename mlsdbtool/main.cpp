@@ -77,6 +77,17 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
 {
     QMap<QString, BoundingBox> retn;
 
+// Europe
+
+    BoundingBox albania_bb;
+    albania_bb.latShift = 0.0;
+    albania_bb.lonShift = 0.0;
+    albania_bb.lowerLeft.lat = 39.625;
+    albania_bb.lowerLeft.lon = 19.304;
+    albania_bb.upperRight.lat = 42.688;
+    albania_bb.upperRight.lon = 21.020;
+    retn.insert(QLatin1String("Albania"), albania_bb);
+
     BoundingBox india_bb;
     india_bb.latShift = 0.0;
     india_bb.lonShift = 0.0;
