@@ -77,6 +77,548 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
 {
     QMap<QString, BoundingBox> retn;
 
+// Africa
+
+    BoundingBox algeria_bb;
+    algeria_bb.latShift = 0.0;
+    algeria_bb.lonShift = 0.0;
+    algeria_bb.lowerLeft.lat = 19.057;
+    algeria_bb.lowerLeft.lon = -8.684;
+    algeria_bb.upperRight.lat = 37.118;
+    algeria_bb.upperRight.lon = 11.999;
+    retn.insert(QLatin1String("Algeria"), algeria_bb);
+
+    BoundingBox angola_bb;
+    angola_bb.latShift = 0.0;
+    angola_bb.lonShift = 0.0;
+    angola_bb.lowerLeft.lat = -17.931;
+    angola_bb.lowerLeft.lon = 11.6400;
+    angola_bb.upperRight.lat = -4.438;
+    angola_bb.upperRight.lon = 24.080;
+    retn.insert(QLatin1String("Angola"), angola_bb);
+
+    BoundingBox benin_bb;
+    benin_bb.latShift = 0.0;
+    benin_bb.lonShift = 0.0;
+    benin_bb.lowerLeft.lat = 6.142;
+    benin_bb.lowerLeft.lon = 0.772;
+    benin_bb.upperRight.lat = 12.236;
+    benin_bb.upperRight.lon = 3.797;
+    retn.insert(QLatin1String("Benin"), benin_bb);
+
+    BoundingBox botswana_bb;
+    botswana_bb.latShift = 0.0;
+    botswana_bb.lonShift = 0.0;
+    botswana_bb.lowerLeft.lat = -26.828;
+    botswana_bb.lowerLeft.lon = 19.895;
+    botswana_bb.upperRight.lat = -17.661;
+    botswana_bb.upperRight.lon = 29.432;
+    retn.insert(QLatin1String("Botswana"), botswana_bb);
+
+    BoundingBox burkina_faso_bb;
+    burkina_faso_bb.latShift = 0.0;
+    burkina_faso_bb.lonShift = 0.0;
+    burkina_faso_bb.lowerLeft.lat = 9.611;
+    burkina_faso_bb.lowerLeft.lon = -5.471;
+    burkina_faso_bb.upperRight.lat = 15.116;
+    burkina_faso_bb.upperRight.lon = 2.177;
+    retn.insert(QLatin1String("Burkina_Faso"), burkina_faso_bb);
+
+    BoundingBox burundi_bb;
+    burundi_bb.latShift = 0.0;
+    burundi_bb.lonShift = 0.0;
+    burundi_bb.lowerLeft.lat = -4.499;
+    burundi_bb.lowerLeft.lon = 29.025;
+    burundi_bb.upperRight.lat = -2.348;
+    burundi_bb.upperRight.lon = 30.752;
+    retn.insert(QLatin1String("Burundi"), burundi_bb);
+
+    BoundingBox cameroon_bb;
+    cameroon_bb.latShift = 0.0;
+    cameroon_bb.lonShift = 0.0;
+    cameroon_bb.lowerLeft.lat = 1.728;
+    cameroon_bb.lowerLeft.lon = 8.488;
+    cameroon_bb.upperRight.lat = 12.859;
+    cameroon_bb.upperRight.lon = 16.013;
+    retn.insert(QLatin1String("Cameroon"), cameroon_bb);
+
+    BoundingBox canary_islands_bb;
+    canary_islands_bb.latShift = 0.0;
+    canary_islands_bb.lonShift = 0.0;
+    canary_islands_bb.lowerLeft.lat = 27.637;
+    canary_islands_bb.lowerLeft.lon = -18.161;
+    canary_islands_bb.upperRight.lat = 29.415;
+    canary_islands_bb.upperRight.lon = -13.419;
+    retn.insert(QLatin1String("Canary_Islands"), canary_islands_bb);
+
+    BoundingBox cape_verde_bb;
+    cape_verde_bb.latShift = 0.0;
+    cape_verde_bb.lonShift = 0.0;
+    cape_verde_bb.lowerLeft.lat = 14.802;
+    cape_verde_bb.lowerLeft.lon = -25.359;
+    cape_verde_bb.upperRight.lat = 17.197;
+    cape_verde_bb.upperRight.lon = -22.666;
+    retn.insert(QLatin1String("Cape_Verde"), cape_verde_bb);
+
+    BoundingBox central_african_republic_bb;
+    central_african_republic_bb.latShift = 0.0;
+    central_african_republic_bb.lonShift = 0.0;
+    central_african_republic_bb.lowerLeft.lat = 2.267;
+    central_african_republic_bb.lowerLeft.lon = 14.459;
+    central_african_republic_bb.upperRight.lat = 11.142;
+    central_african_republic_bb.upperRight.lon = 27.374;
+    retn.insert(QLatin1String("Central_African_Republic"), central_african_republic_bb);
+
+    BoundingBox ceuta_bb;
+    ceuta_bb.latShift = 0.0;
+    ceuta_bb.lonShift = 0.0;
+    ceuta_bb.lowerLeft.lat = 35.871;
+    ceuta_bb.lowerLeft.lon = -5.353;
+    ceuta_bb.upperRight.lat = 35.907;
+    ceuta_bb.upperRight.lon = -5.278;
+    retn.insert(QLatin1String("Ceuta"), ceuta_bb);
+
+    BoundingBox chad_bb;
+    chad_bb.latShift = 0.0;
+    chad_bb.lonShift = 0.0;
+    chad_bb.lowerLeft.lat = 7.422;
+    chad_bb.lowerLeft.lon = 13.540;
+    chad_bb.upperRight.lat = 23.410;
+    chad_bb.upperRight.lon = 23.889;
+    retn.insert(QLatin1String("Chad"), chad_bb);
+
+    BoundingBox comoros_bb;
+    comoros_bb.latShift = 0.0;
+    comoros_bb.lonShift = 0.0;
+    comoros_bb.lowerLeft.lat = -12.414;
+    comoros_bb.lowerLeft.lon = 43.216;
+    comoros_bb.upperRight.lat = -11.362;
+    comoros_bb.upperRight.lon = 44.538;
+    retn.insert(QLatin1String("Comoros"), comoros_bb);
+
+    BoundingBox congo_bb;
+    congo_bb.latShift = 0.0;
+    congo_bb.lonShift = 0.0;
+    congo_bb.lowerLeft.lat = -5.038;
+    congo_bb.lowerLeft.lon = 11.093;
+    congo_bb.upperRight.lat = 3.728;
+    congo_bb.upperRight.lon = 18.453;
+    retn.insert(QLatin1String("Congo"), congo_bb);
+
+    BoundingBox democratic_republic_of_the_congo_bb;
+    democratic_republic_of_the_congo_bb.latShift = 0.0;
+    democratic_republic_of_the_congo_bb.lonShift = 0.0;
+    democratic_republic_of_the_congo_bb.lowerLeft.lat = -13.257;
+    democratic_republic_of_the_congo_bb.lowerLeft.lon = 12.182;
+    democratic_republic_of_the_congo_bb.upperRight.lat = 5.256;
+    democratic_republic_of_the_congo_bb.upperRight.lon = 31.174;
+    retn.insert(QLatin1String("Democratic_Republic_of_the_Congo"), democratic_republic_of_the_congo_bb);
+
+    BoundingBox djibouti_bb;
+    djibouti_bb.latShift = 0.0;
+    djibouti_bb.lonShift = 0.0;
+    djibouti_bb.lowerLeft.lat = 10.926;
+    djibouti_bb.lowerLeft.lon = 41.662;
+    djibouti_bb.upperRight.lat = 12.699;
+    djibouti_bb.upperRight.lon = 43.318;
+    retn.insert(QLatin1String("Djibouti"), djibouti_bb);
+
+    BoundingBox egypt_bb;
+    egypt_bb.latShift = 0.0;
+    egypt_bb.lonShift = 0.0;
+    egypt_bb.lowerLeft.lat = 22.0;
+    egypt_bb.lowerLeft.lon = 24.700;
+    egypt_bb.upperRight.lat = 31.586;
+    egypt_bb.upperRight.lon = 36.866;
+    retn.insert(QLatin1String("Egypt"), egypt_bb);
+
+    BoundingBox equatorial_guinea_bb;
+    equatorial_guinea_bb.latShift = 0.0;
+    equatorial_guinea_bb.lonShift = 0.0;
+    equatorial_guinea_bb.lowerLeft.lat = 1.010;
+    equatorial_guinea_bb.lowerLeft.lon = 9.306;
+    equatorial_guinea_bb.upperRight.lat = 2.284;
+    equatorial_guinea_bb.upperRight.lon = 11.285;
+    retn.insert(QLatin1String("Equatorial_Guinea"), equatorial_guinea_bb);
+
+    BoundingBox eritrea_bb;
+    eritrea_bb.latShift = 0.0;
+    eritrea_bb.lonShift = 0.0;
+    eritrea_bb.lowerLeft.lat = 12.455;
+    eritrea_bb.lowerLeft.lon = 36.323;
+    eritrea_bb.upperRight.lat = 17.998;
+    eritrea_bb.upperRight.lon = 43.0812;
+    retn.insert(QLatin1String("Eritrea"), eritrea_bb);
+
+    BoundingBox ethiopia_bb;
+    ethiopia_bb.latShift = 0.0;
+    ethiopia_bb.lonShift = 0.0;
+    ethiopia_bb.lowerLeft.lat = 3.422;
+    ethiopia_bb.lowerLeft.lon = 32.954;
+    ethiopia_bb.upperRight.lat = 14.959;
+    ethiopia_bb.upperRight.lon = 47.789;
+    retn.insert(QLatin1String("Ethiopia"), ethiopia_bb);
+
+    BoundingBox gabon_bb;
+    gabon_bb.latShift = 0.0;
+    gabon_bb.lonShift = 0.0;
+    gabon_bb.lowerLeft.lat = -3.978;
+    gabon_bb.lowerLeft.lon = 8.798;
+    gabon_bb.upperRight.lat = 2.327;
+    gabon_bb.upperRight.lon = 14.425;
+    retn.insert(QLatin1String("Gabon"), gabon_bb);
+
+    BoundingBox gambia_bb;
+    gambia_bb.latShift = 0.0;
+    gambia_bb.lonShift = 0.0;
+    gambia_bb.lowerLeft.lat = 13.130;
+    gambia_bb.lowerLeft.lon = -16.841;
+    gambia_bb.upperRight.lat = 13.876;
+    gambia_bb.upperRight.lon = -13.845;
+    retn.insert(QLatin1String("Gambia"), gambia_bb);
+
+    BoundingBox ghana_bb;
+    ghana_bb.latShift = 0.0;
+    ghana_bb.lonShift = 0.0;
+    ghana_bb.lowerLeft.lat = 4.710;
+    ghana_bb.lowerLeft.lon = -3.244;
+    ghana_bb.upperRight.lat = 11.098;
+    ghana_bb.upperRight.lon = 1.060;
+    retn.insert(QLatin1String("Ghana"), ghana_bb);
+
+    BoundingBox guinea_bb;
+    guinea_bb.latShift = 0.0;
+    guinea_bb.lonShift = 0.0;
+    guinea_bb.lowerLeft.lat = 7.309;
+    guinea_bb.lowerLeft.lon = -15.130;
+    guinea_bb.upperRight.lat = 12.586;
+    guinea_bb.upperRight.lon = -7.832;
+    retn.insert(QLatin1String("Guinea"), guinea_bb);
+
+    BoundingBox guinea_bissau_bb;
+    guinea_bissau_bb.latShift = 0.0;
+    guinea_bissau_bb.lonShift = 0.0;
+    guinea_bissau_bb.lowerLeft.lat = 11.040;
+    guinea_bissau_bb.lowerLeft.lon = -16.677;
+    guinea_bissau_bb.upperRight.lat = 12.628;
+    guinea_bissau_bb.upperRight.lon = -13.700;
+    retn.insert(QLatin1String("Guinea_Bissau"), guinea_bissau_bb);
+
+    BoundingBox ivory_coast_bb;
+    ivory_coast_bb.latShift = 0.0;
+    ivory_coast_bb.lonShift = 0.0;
+    ivory_coast_bb.lowerLeft.lat = 4.338;
+    ivory_coast_bb.lowerLeft.lon = -8.602;
+    ivory_coast_bb.upperRight.lat = 10.524;
+    ivory_coast_bb.upperRight.lon = -2.562;
+    retn.insert(QLatin1String("Ivory_Coast"), ivory_coast_bb);
+
+    BoundingBox kenya_bb;
+    kenya_bb.latShift = 0.0;
+    kenya_bb.lonShift = 0.0;
+    kenya_bb.lowerLeft.lat = -4.676;
+    kenya_bb.lowerLeft.lon = 33.893;
+    kenya_bb.upperRight.lat = 5.506;
+    kenya_bb.upperRight.lon = 41.855;
+    retn.insert(QLatin1String("Kenya"), kenya_bb);
+
+    BoundingBox lesotho_bb;
+    lesotho_bb.latShift = 0.0;
+    lesotho_bb.lonShift = 0.0;
+    lesotho_bb.lowerLeft.lat = -30.645;
+    lesotho_bb.lowerLeft.lon = 26.999;
+    lesotho_bb.upperRight.lat = -28.648;
+    lesotho_bb.upperRight.lon = 29.325;
+    retn.insert(QLatin1String("Lesotho"), lesotho_bb);
+
+    BoundingBox liberia_bb;
+    liberia_bb.latShift = 0.0;
+    liberia_bb.lonShift = 0.0;
+    liberia_bb.lowerLeft.lat = 4.356;
+    liberia_bb.lowerLeft.lon = -11.439;
+    liberia_bb.upperRight.lat = 8.541;
+    liberia_bb.upperRight.lon = -7.540;
+    retn.insert(QLatin1String("Liberia"), liberia_bb);
+
+    BoundingBox libya_bb;
+    libya_bb.latShift = 0.0;
+    libya_bb.lonShift = 0.0;
+    libya_bb.lowerLeft.lat = 19.580;
+    libya_bb.lowerLeft.lon = 9.319;
+    libya_bb.upperRight.lat = 33.137;
+    libya_bb.upperRight.lon = 25.165;
+    retn.insert(QLatin1String("Libya"), libya_bb);
+
+    BoundingBox madagascar_bb;
+    madagascar_bb.latShift = 0.0;
+    madagascar_bb.lonShift = 0.0;
+    madagascar_bb.lowerLeft.lat = -25.601;
+    madagascar_bb.lowerLeft.lon = 43.254;
+    madagascar_bb.upperRight.lat = -12.041;
+    madagascar_bb.upperRight.lon = 50.477;
+    retn.insert(QLatin1String("Madagascar"), madagascar_bb);
+
+    BoundingBox madeira_bb;
+    madeira_bb.latShift = 0.0;
+    madeira_bb.lonShift = 0.0;
+    madeira_bb.lowerLeft.lat = 30.028;
+    madeira_bb.lowerLeft.lon = -17.266;
+    madeira_bb.upperRight.lat = 33.117;
+    madeira_bb.upperRight.lon = -15.853;
+    retn.insert(QLatin1String("Madeira"), madeira_bb);
+
+    BoundingBox malawi_bb;
+    malawi_bb.latShift = 0.0;
+    malawi_bb.lonShift = 0.0;
+    malawi_bb.lowerLeft.lat = -16.801;
+    malawi_bb.lowerLeft.lon = 32.688;
+    malawi_bb.upperRight.lat = -9.231;
+    malawi_bb.upperRight.lon = 35.772;
+    retn.insert(QLatin1String("Malawi"), malawi_bb);
+
+    BoundingBox mali_bb;
+    mali_bb.latShift = 0.0;
+    mali_bb.lonShift = 0.0;
+    mali_bb.lowerLeft.lat = 10.096;
+    mali_bb.lowerLeft.lon = -12.170;
+    mali_bb.upperRight.lat = 24.975;
+    mali_bb.upperRight.lon = 4.270;
+    retn.insert(QLatin1String("Mali"), mali_bb);
+
+    BoundingBox mauritania_bb;
+    mauritania_bb.latShift = 0.0;
+    mauritania_bb.lonShift = 0.0;
+    mauritania_bb.lowerLeft.lat = 14.617;
+    mauritania_bb.lowerLeft.lon = -17.063;
+    mauritania_bb.upperRight.lat = 27.396;
+    mauritania_bb.upperRight.lon = -4.923;
+    retn.insert(QLatin1String("Mauritania"), mauritania_bb);
+
+    BoundingBox mauritius_bb;
+    mauritius_bb.latShift = 0.0;
+    mauritius_bb.lonShift = 0.0;
+    mauritius_bb.lowerLeft.lat = -20.526;
+    mauritius_bb.lowerLeft.lon = 56.513;
+    mauritius_bb.upperRight.lat = -10.319;
+    mauritius_bb.upperRight.lon = 63.525;
+    retn.insert(QLatin1String("Mauritius"), mauritius_bb);
+
+    BoundingBox mayotte_bb;
+    mayotte_bb.latShift = 0.0;
+    mayotte_bb.lonShift = 0.0;
+    mayotte_bb.lowerLeft.lat = -13.000;
+    mayotte_bb.lowerLeft.lon = 45.014;
+    mayotte_bb.upperRight.lat = -12.633;
+    mayotte_bb.upperRight.lon = 45.317;
+    retn.insert(QLatin1String("Mayotte"), mayotte_bb);
+
+    BoundingBox melilla_bb;
+    melilla_bb.latShift = 0.0;
+    melilla_bb.lonShift = 0.0;
+    melilla_bb.lowerLeft.lat = 35.269;
+    melilla_bb.lowerLeft.lon = -2.963;
+    melilla_bb.upperRight.lat = 35.307;
+    melilla_bb.upperRight.lon = -2.923;
+    retn.insert(QLatin1String("Melilla"), melilla_bb);
+
+    BoundingBox morocco_bb;
+    morocco_bb.latShift = 0.0;
+    morocco_bb.lonShift = 0.0;
+    morocco_bb.lowerLeft.lat = 21.421;
+    morocco_bb.lowerLeft.lon = -17.020;
+    morocco_bb.upperRight.lat = 35.760;
+    morocco_bb.upperRight.lon = -1.125;
+    retn.insert(QLatin1String("Morocco"), morocco_bb);
+
+    BoundingBox mozambique_bb;
+    mozambique_bb.latShift = 0.0;
+    mozambique_bb.lonShift = 0.0;
+    mozambique_bb.lowerLeft.lat = -26.742;
+    mozambique_bb.lowerLeft.lon = 30.179;
+    mozambique_bb.upperRight.lat = -10.317;
+    mozambique_bb.upperRight.lon = 40.775;
+    retn.insert(QLatin1String("Mozambique"), mozambique_bb);
+
+    BoundingBox namibia_bb;
+    namibia_bb.latShift = 0.0;
+    namibia_bb.lonShift = 0.0;
+    namibia_bb.lowerLeft.lat = -29.045;
+    namibia_bb.lowerLeft.lon = 11.734;
+    namibia_bb.upperRight.lat = -16.941;
+    namibia_bb.upperRight.lon = 25.084;
+    retn.insert(QLatin1String("Namibia"), namibia_bb);
+
+    BoundingBox niger_bb;
+    niger_bb.latShift = 0.0;
+    niger_bb.lonShift = 0.0;
+    niger_bb.lowerLeft.lat = 11.660;
+    niger_bb.lowerLeft.lon = 0.296;
+    niger_bb.upperRight.lat = 23.472;
+    niger_bb.upperRight.lon = 15.903;
+    retn.insert(QLatin1String("Niger"), niger_bb);
+
+    BoundingBox nigeria_bb;
+    nigeria_bb.latShift = 0.0;
+    nigeria_bb.lonShift = 0.0;
+    nigeria_bb.lowerLeft.lat = 4.240;
+    nigeria_bb.lowerLeft.lon = 2.691;
+    nigeria_bb.upperRight.lat = 13.866;
+    nigeria_bb.upperRight.lon = 14.577;
+    retn.insert(QLatin1String("Nigeria"), nigeria_bb);
+
+    BoundingBox reunion_bb;
+    reunion_bb.latShift = 0.0;
+    reunion_bb.lonShift = 0.0;
+    reunion_bb.lowerLeft.lat = -21.372;
+    reunion_bb.lowerLeft.lon = 55.219;
+    reunion_bb.upperRight.lat = -20.856;
+    reunion_bb.upperRight.lon = 55.845;
+    retn.insert(QLatin1String("Reunion"), reunion_bb);
+
+    BoundingBox rwanda_bb;
+    rwanda_bb.latShift = 0.0;
+    rwanda_bb.lonShift = 0.0;
+    rwanda_bb.lowerLeft.lat = -2.918;
+    rwanda_bb.lowerLeft.lon = 29.024;
+    rwanda_bb.upperRight.lat = -1.137;
+    rwanda_bb.upperRight.lon = 30.816;
+    retn.insert(QLatin1String("Rwanda"), rwanda_bb);
+
+    BoundingBox sao_tome_and_principe_bb;
+    sao_tome_and_principe_bb.latShift = 0.0;
+    sao_tome_and_principe_bb.lonShift = 0.0;
+    sao_tome_and_principe_bb.lowerLeft.lat = -0.014;
+    sao_tome_and_principe_bb.lowerLeft.lon = 5.599;
+    sao_tome_and_principe_bb.upperRight.lat = 1.734;
+    sao_tome_and_principe_bb.upperRight.lon = 7.466;
+    retn.insert(QLatin1String("Sao_Tome_and_Principe"), sao_tome_and_principe_bb);
+
+    BoundingBox senegal_bb;
+    senegal_bb.latShift = 0.0;
+    senegal_bb.lonShift = 0.0;
+    senegal_bb.lowerLeft.lat = 12.332;
+    senegal_bb.lowerLeft.lon = -17.625;
+    senegal_bb.upperRight.lat = 16.598;
+    senegal_bb.upperRight.lon = -11.467;
+    retn.insert(QLatin1String("Senegal"), senegal_bb);
+
+    BoundingBox seychelles_bb;
+    seychelles_bb.latShift = 0.0;
+    seychelles_bb.lonShift = 0.0;
+    seychelles_bb.lowerLeft.lat = -10.217;
+    seychelles_bb.lowerLeft.lon = 46.199;
+    seychelles_bb.upperRight.lat = -3.711;
+    seychelles_bb.upperRight.lon = 56.279;
+    retn.insert(QLatin1String("Seychelles"), seychelles_bb);
+
+    BoundingBox sierra_leone_bb;
+    sierra_leone_bb.latShift = 0.0;
+    sierra_leone_bb.lonShift = 0.0;
+    sierra_leone_bb.lowerLeft.lat = 6.785;
+    sierra_leone_bb.lowerLeft.lon = -13.247;
+    sierra_leone_bb.upperRight.lat = 10.047;
+    sierra_leone_bb.upperRight.lon = -10.230;
+    retn.insert(QLatin1String("Sierra_Leone"), sierra_leone_bb);
+
+    BoundingBox somalia_bb;
+    somalia_bb.latShift = 0.0;
+    somalia_bb.lonShift = 0.0;
+    somalia_bb.lowerLeft.lat = -1.683;
+    somalia_bb.lowerLeft.lon = 40.981;
+    somalia_bb.upperRight.lat = 12.025;
+    somalia_bb.upperRight.lon = 51.134;
+    retn.insert(QLatin1String("Somalia"), somalia_bb);
+
+    BoundingBox south_africa_bb;
+    south_africa_bb.latShift = 0.0;
+    south_africa_bb.lonShift = 0.0;
+    south_africa_bb.lowerLeft.lat = -34.819;
+    south_africa_bb.lowerLeft.lon = 16.345;
+    south_africa_bb.upperRight.lat = -22.091;
+    south_africa_bb.upperRight.lon = 32.830;
+    retn.insert(QLatin1String("South_Africa"), south_africa_bb);
+
+    BoundingBox south_sudan_bb;
+    south_sudan_bb.latShift = 0.0;
+    south_sudan_bb.lonShift = 0.0;
+    south_sudan_bb.lowerLeft.lat = 3.509;
+    south_sudan_bb.lowerLeft.lon = 23.887;
+    south_sudan_bb.upperRight.lat = 12.248;
+    south_sudan_bb.upperRight.lon = 35.298;
+    retn.insert(QLatin1String("South_Sudan"), south_sudan_bb);
+
+    BoundingBox sudan_bb;
+    sudan_bb.latShift = 0.0;
+    sudan_bb.lonShift = 0.0;
+    sudan_bb.lowerLeft.lat = 8.620;
+    sudan_bb.lowerLeft.lon = 21.937;
+    sudan_bb.upperRight.lat = 22.0;
+    sudan_bb.upperRight.lon = 38.410;
+    retn.insert(QLatin1String("Sudan"), sudan_bb);
+
+    BoundingBox swaziland_bb;
+    swaziland_bb.latShift = 0.0;
+    swaziland_bb.lonShift = 0.0;
+    swaziland_bb.lowerLeft.lat = -27.286;
+    swaziland_bb.lowerLeft.lon = 30.676;
+    swaziland_bb.upperRight.lat = -25.660;
+    swaziland_bb.upperRight.lon = 32.072;
+    retn.insert(QLatin1String("Swaziland"), swaziland_bb);
+
+    BoundingBox tanzania_bb;
+    tanzania_bb.latShift = 0.0;
+    tanzania_bb.lonShift = 0.0;
+    tanzania_bb.lowerLeft.lat = -11.720;
+    tanzania_bb.lowerLeft.lon = 29.340;
+    tanzania_bb.upperRight.lat = -0.95;
+    tanzania_bb.upperRight.lon = 40.317;
+    retn.insert(QLatin1String("Tanzania"), tanzania_bb);
+
+    BoundingBox togo_bb;
+    togo_bb.latShift = 0.0;
+    togo_bb.lonShift = 0.0;
+    togo_bb.lowerLeft.lat = 5.929;
+    togo_bb.lowerLeft.lon = -0.049;
+    togo_bb.upperRight.lat = 11.018;
+    togo_bb.upperRight.lon = 1.865;
+    retn.insert(QLatin1String("Togo"), togo_bb);
+
+    BoundingBox tunisia_bb;
+    tunisia_bb.latShift = 0.0;
+    tunisia_bb.lonShift = 0.0;
+    tunisia_bb.lowerLeft.lat = 30.307;
+    tunisia_bb.lowerLeft.lon = 7.524;
+    tunisia_bb.upperRight.lat = 37.350;
+    tunisia_bb.upperRight.lon = 11.489;
+    retn.insert(QLatin1String("Tunisia"), tunisia_bb);
+
+    BoundingBox uganda_bb;
+    uganda_bb.latShift = 0.0;
+    uganda_bb.lonShift = 0.0;
+    uganda_bb.lowerLeft.lat = -1.443;
+    uganda_bb.lowerLeft.lon = 29.579;
+    uganda_bb.upperRight.lat = 4.249;
+    uganda_bb.upperRight.lon = 35.035;
+    retn.insert(QLatin1String("Uganda"), uganda_bb);
+
+    BoundingBox zambia_bb;
+    zambia_bb.latShift = 0.0;
+    zambia_bb.lonShift = 0.0;
+    zambia_bb.lowerLeft.lat = -17.961;
+    zambia_bb.lowerLeft.lon = 21.888;
+    zambia_bb.upperRight.lat = -8.238;
+    zambia_bb.upperRight.lon = 33.485;
+    retn.insert(QLatin1String("Zambia"), zambia_bb);
+
+    BoundingBox zimbabwe_bb;
+    zimbabwe_bb.latShift = 0.0;
+    zimbabwe_bb.lonShift = 0.0;
+    zimbabwe_bb.lowerLeft.lat = -22.271;
+    zimbabwe_bb.lowerLeft.lon = 25.264;
+    zimbabwe_bb.upperRight.lat = -15.508;
+    zimbabwe_bb.upperRight.lon = 32.850;
+    retn.insert(QLatin1String("Zimbabwe"), zimbabwe_bb);
+
 // Europe
 
     BoundingBox aland_islands_bb;
