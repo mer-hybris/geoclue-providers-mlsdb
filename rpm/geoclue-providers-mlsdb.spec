@@ -1,5 +1,5 @@
 Name: geoclue-provider-mlsdb
-Version: 0.0.12
+Version: 0.0.13
 Release: 1
 Summary: Geoinformation Service from Mozilla Location Services Database Provider
 Group: System/Libraries
