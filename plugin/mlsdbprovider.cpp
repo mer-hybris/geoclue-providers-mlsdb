@@ -40,6 +40,7 @@ namespace {
     const int FixTimeout = 30000;               // 30s
     const quint32 MinimumInterval = 10000;      // 10s
     const quint32 PreferredInitialFixTime = 0;  //  0s
+    const QString LocationSettingsDir = QStringLiteral("/etc/location/");
     const QString LocationSettingsFile = QStringLiteral("/etc/location/location.conf");
     const QString LocationSettingsEnabledKey = QStringLiteral("location/enabled");
     const QString LocationSettingsMlsEnabledKey = QStringLiteral("location/mls/enabled");
@@ -91,6 +92,9 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
 
     connect(&m_locationSettingsWatcher, &QFileSystemWatcher::fileChanged,
             this, &MlsdbProvider::updatePositioningEnabled);
+    connect(&m_locationSettingsWatcher, &QFileSystemWatcher::directoryChanged,
+            this, &MlsdbProvider::updatePositioningEnabled);
+    m_locationSettingsWatcher.addPath(LocationSettingsDir);
     m_locationSettingsWatcher.addPath(LocationSettingsFile);
     updatePositioningEnabled();
 
