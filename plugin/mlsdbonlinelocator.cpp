@@ -22,6 +22,7 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QtCore/QLoggingCategory>
+#include <QtGlobal>
 
 #include <sailfishkeyprovider.h>
 #include <qofonosimmanager.h>
@@ -36,7 +37,7 @@
  * See https://mozilla.github.io/ichnaea/api/geolocate.html for protocol documentation.
  */
 
-Q_LOGGING_CATEGORY(lcGeoclueMlsdbOnline, "geoclue.provider.mlsdb.online")
+Q_LOGGING_CATEGORY(lcGeoclueMlsdbOnline, "geoclue.provider.mlsdb.online", QtWarningMsg)
 
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     : QObject(parent)
