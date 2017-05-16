@@ -16,6 +16,7 @@
 #include "geoclue_adaptor.h"
 #include "position_adaptor.h"
 
+#include <QtGlobal>
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
@@ -31,8 +32,8 @@
 #include <strings.h>
 #include <sys/time.h>
 
-Q_LOGGING_CATEGORY(lcGeoclueMlsdb, "geoclue.provider.mlsdb")
-Q_LOGGING_CATEGORY(lcGeoclueMlsdbPosition, "geoclue.provider.mlsdb.position")
+Q_LOGGING_CATEGORY(lcGeoclueMlsdb, "geoclue.provider.mlsdb", QtWarningMsg)
+Q_LOGGING_CATEGORY(lcGeoclueMlsdbPosition, "geoclue.provider.mlsdb.position", QtWarningMsg)
 
 namespace {
     MlsdbProvider *staticProvider = 0;
