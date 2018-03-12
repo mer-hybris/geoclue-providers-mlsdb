@@ -366,10 +366,10 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
                                : c->type() == QOfonoExtCell::WCDMA
                                ? MLSDB_CELL_TYPE_UMTS
                                : MLSDB_CELL_TYPE_UMTS;
-        if (c->cid() != -1 && c->cid() != 0) {
+        if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0) {
             locationCode = static_cast<quint32>(c->lac());
             cellId = static_cast<quint32>(c->cid());
-        } else if (c->ci() != -1 && c->ci() != 0) {
+        } else if (c->ci() != QOfonoExtCell::InvalidValue && c->ci() != 0) {
             locationCode = static_cast<quint32>(c->tac());
             cellId = static_cast<quint32>(c->ci());
         } else {
