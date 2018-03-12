@@ -77,6 +77,11 @@ void MlsdbOnlineLocator::defaultVoiceModemChanged(const QString &modem)
     setupSimManager();
 }
 
+bool MlsdbOnlineLocator::haveFieldData(const QList<MlsdbProvider::CellPositioningData> &cells)
+{
+    return !(cells.isEmpty() && m_wifiServices.isEmpty() && (!m_simManager || !m_simManager->isValid()));
+}
+
 bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioningData> &cells)
 {
     if (!loadMlsKey()) {
@@ -89,6 +94,12 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
         return true;
     }
 
+    if (!haveFieldData(cells)) {
+        // no field data available
+        qCDebug(lcGeoclueMlsdbOnline) << "No field data available for MLS online request";
+        return false;
+    }
+
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -97,12 +108,6 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
     map.unite(cellTowerFields(cells));
     map.unite(wifiAccessPointFields());
     map.unite(fallbackFields());
-
-    if (map.isEmpty()) {
-        // no field data available
-        qCDebug(lcGeoclueMlsdbOnline) << "No field data available for MLS online request";
-        return false;
-    }
 
     QJsonDocument doc = QJsonDocument::fromVariant(map);
     QByteArray json = doc.toJson();

@@ -55,6 +55,7 @@ private Q_SLOTS:
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
 
+    bool haveFieldData(const QList<MlsdbProvider::CellPositioningData> &cells);
     QVariantMap globalFields();
     QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells);
     QVariantMap wifiAccessPointFields();
