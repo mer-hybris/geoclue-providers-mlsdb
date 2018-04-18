@@ -101,14 +101,27 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
         return false;
     }
 
+    QVariantMap map;
+
+    QVariantMap map_cellTowerFields = cellTowerFields(cells);
+    if (!map_cellTowerFields.isEmpty()) map.unite(map_cellTowerFields);
+
+    QVariantMap map_wifiAccessPointFields = wifiAccessPointFields();
+    if (!map_wifiAccessPointFields.isEmpty()) map.unite(map_wifiAccessPointFields);
+
+    if (map.isEmpty()) {
+        // no field data available
+        fprintf(stdout, "   No field data available for MLS online request \n");
+        return false;
+    }
+
+    QVariantMap map_globalFields(globalFields());
+    if (!map_globalFields.isEmpty()) map.unite(map_globalFields);
+
+    map.unite(fallbackFields());
+        
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QVariantMap map;
-    map.unite(globalFields());
-    map.unite(cellTowerFields(cells));
-    map.unite(wifiAccessPointFields());
-    map.unite(fallbackFields());
 
     QJsonDocument doc = QJsonDocument::fromVariant(map);
     QByteArray json = doc.toJson();
@@ -208,6 +221,8 @@ QVariantMap MlsdbOnlineLocator::globalFields()
 QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells)
 {
     QVariantMap map;
+    if (cells.count() == 0) return map;
+    
     QVariantList cellTowers;
     Q_FOREACH (const MlsdbProvider::CellPositioningData &cell, cells) {
         QVariantMap cellTowerMap;
@@ -224,24 +239,23 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
             break;
         default:
             // type currently unsupported by MLS, don't add it to the field
-            break;
+        	continue;
         }
-        if (cell.uniqueCellId.mcc() != 0) {
+        
+        if (cell.uniqueCellId.mcc() != 0 &&
+                        cell.uniqueCellId.mnc() != 0 &&
+                        cell.uniqueCellId.locationCode() != 0 &&
+                        cell.uniqueCellId.cellId() != 0 &&
+						cell.signalStrength != 0) {
+
             cellTowerMap["mobileCountryCode"] = cell.uniqueCellId.mcc();
-        }
-        if (cell.uniqueCellId.mnc() != 0) {
             cellTowerMap["mobileNetworkCode"] = cell.uniqueCellId.mnc();
-        }
-        if (cell.uniqueCellId.locationCode() != 0) {
             cellTowerMap["locationAreaCode"] = cell.uniqueCellId.locationCode();
-        }
-        if (cell.uniqueCellId.cellId() != 0) {
             cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
-        }
-        if (cell.signalStrength != 0) {
             cellTowerMap["signalStrength"] = cell.signalStrength;
+        
+            cellTowers.append(cellTowerMap);
         }
-        cellTowers.append(cellTowerMap);
     }
     map["cellTowers"] = cellTowers;
     return map;
@@ -250,6 +264,8 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
 QVariantMap MlsdbOnlineLocator::wifiAccessPointFields()
 {
     QVariantMap map;
+    if (m_wifiServices.count() == 0) return map;
+    
     QVariantList wifiInfoList;
     for (int i=0; i<m_wifiServices.count(); i++) {
         NetworkService *service = m_wifiServices.at(i);
@@ -260,11 +276,14 @@ QVariantMap MlsdbOnlineLocator::wifiAccessPointFields()
             // _nomap must NOT be used for privacy reasons."
             continue;
         }
-        QVariantMap wifiInfo;
-        wifiInfo["macAddress"] = service->bssid();
-        wifiInfo["frequency"] = service->frequency();
-        wifiInfo["signalStrength"] = service->strength();
-        wifiInfoList.append(wifiInfo);
+        
+        if(service->frequency() != 0) {
+        	QVariantMap wifiInfo;
+        	wifiInfo["macAddress"] = service->bssid();
+        	wifiInfo["frequency"] = service->frequency();
+        	wifiInfo["signalStrength"] = service->strength();
+        	wifiInfoList.append(wifiInfo);
+        }
     }
     map["wifiAccessPoints"] = wifiInfoList;
     return map;
@@ -277,11 +296,11 @@ QVariantMap MlsdbOnlineLocator::fallbackFields()
     // If no exact cell match can be found, fall back from exact cell position estimates to more
     // coarse grained cell location area estimates, rather than going directly to an even worse
     // GeoIP based estimate.
-    fallbacks["lacf"] = true;
+    fallbacks["lacf"] = false;
 
     // If no position can be estimated based on any of the provided data points, fall back to an
     // estimate based on a GeoIP database based on the senders IP address at the time of the query.
-    fallbacks["ipf"] = true;
+    fallbacks["ipf"] = false;
 
     QVariantMap map;
     map["fallbacks"] = fallbacks;
