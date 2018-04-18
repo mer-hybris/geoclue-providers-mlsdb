@@ -116,6 +116,7 @@ private Q_SLOTS:
     void cellularNetworkRegistrationChanged();
     void onlineLocationFound(double latitude, double longitude, double accuracy);
     void onlineLocationError(const QString &errorString);
+    void onlineWifiChanged();
 
 protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE; // QObject

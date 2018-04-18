@@ -312,6 +312,8 @@ void MlsdbProvider::tryFetchOnlinePosition()
                     this, &MlsdbProvider::onlineLocationFound);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
                     this, &MlsdbProvider::onlineLocationError);
+            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::wifiChanged,
+                    this, &MlsdbProvider::onlineWifiChanged);
         }
         if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
             return;
@@ -320,6 +322,11 @@ void MlsdbProvider::tryFetchOnlinePosition()
 
     // fall back to using offline position
     updateLocationFromCells(cellIds);
+}
+
+void MlsdbProvider::onlineWifiChanged()
+{
+    tryFetchOnlinePosition();
 }
 
 void MlsdbProvider::onlineLocationFound(double latitude, double longitude, double accuracy)
