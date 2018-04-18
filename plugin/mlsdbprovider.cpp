@@ -358,7 +358,6 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
 {
     qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
-    quint32 maxNeighborSignalStrength = 1;
     QSet<MlsdbUniqueCellId> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
         CellPositioningData cell;
@@ -366,37 +365,41 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
         quint32 cellId = 0;
         quint16 mcc = c->mcc();
         quint16 mnc = c->mnc();
-        MlsdbCellType cellType = c->type() == QOfonoExtCell::LTE
-                               ? MLSDB_CELL_TYPE_LTE
-                               : c->type() == QOfonoExtCell::GSM
-                               ? MLSDB_CELL_TYPE_GSM
-                               : c->type() == QOfonoExtCell::WCDMA
-                               ? MLSDB_CELL_TYPE_UMTS
-                               : MLSDB_CELL_TYPE_UMTS;
-        if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0) {
-            locationCode = static_cast<quint32>(c->lac());
-            cellId = static_cast<quint32>(c->cid());
-        } else if (c->ci() != QOfonoExtCell::InvalidValue && c->ci() != 0) {
-            locationCode = static_cast<quint32>(c->tac());
-            cellId = static_cast<quint32>(c->ci());
-        } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id with type:" << c->type()
+
+        if (c->mcc() > 999 || c->mnc() > 999) {
+           qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id with type:" << c->type()
                                             << " mcc:" << c->mcc() << " mnc:" << c->mnc() << " lac:" << c->lac()
                                             << " tac:" << c->tac() << " pci:" << c->pci() << " psc:" << c->psc();
             continue;
-        }
+      	}
+
+        MlsdbCellType cellType;
+
+        switch (c->type()) {
+        case QOfonoExtCell::LTE:
+            cellType = MLSDB_CELL_TYPE_LTE;
+            locationCode = static_cast<quint32>(c->tac());
+            cellId = static_cast<quint32>(c->ci());
+            break;
+        case QOfonoExtCell::WCDMA:
+            cellType = MLSDB_CELL_TYPE_UMTS;
+            locationCode = static_cast<quint32>(c->lac());
+            cellId = static_cast<quint32>(c->cid());
+            break;
+        case QOfonoExtCell::GSM:
+            cellType = MLSDB_CELL_TYPE_GSM;
+            locationCode = static_cast<quint32>(c->lac());
+            cellId = static_cast<quint32>(c->cid());
+            break;
+        default:
+            continue;
+	}
+
         cell.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
         if (!seenCellIds.contains(cell.uniqueCellId)) {
             qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.uniqueCellId.toString()
                                             << "with strength:" << c->signalStrength();
             cell.signalStrength = c->signalStrength();
-            if (cell.signalStrength > maxNeighborSignalStrength) {
-                // used for the cells we're connected to.
-                // if no signal strength data is available from ofono,
-                // we assume they're at least as strong signals as the
-                // strongest of our neighbor cells.
-                maxNeighborSignalStrength = cell.signalStrength;
-            }
             cells.append(cell);
             seenCellIds.insert(cell.uniqueCellId);
         }
