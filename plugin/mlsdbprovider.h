@@ -116,6 +116,7 @@ private Q_SLOTS:
     void cellularNetworkRegistrationChanged();
     void onlineLocationFound(double latitude, double longitude, double accuracy);
     void onlineLocationError(const QString &errorString);
+    void onlineWifiChanged();
 
 protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE; // QObject
@@ -127,7 +128,7 @@ private:
     void setStatus(Status status);
     void getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled);
     quint32 minimumRequestedUpdateInterval() const;
-    void calculatePositionAndEmitLocation();
+
 
     void tryFetchOnlinePosition();
     QList<CellPositioningData> seenCellIds() const;
@@ -163,6 +164,11 @@ private:
     QBasicTimer m_idleTimer;    // qApp->quit() if positioning is off for long enough.
     QBasicTimer m_fixLostTimer; // after fix timeout, status set to Acquiring.  timer is reset when a position is calculated.
     QBasicTimer m_recalculatePositionTimer;
+
+    bool m_signalUpdateWiFi;
+    bool m_signalUpdateCell;
+    bool m_mlsFallbacksLacfEnabled;
+    bool m_mlsFallbacksIpfEnabled;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MlsdbProvider::PositionFields)

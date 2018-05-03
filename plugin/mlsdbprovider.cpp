@@ -81,7 +81,11 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_status(StatusUnavailable),
     m_mlsdbOnlineLocator(0),
     m_onlinePositioningEnabled(false),
-    m_cellWatcher(new QOfonoExtCellWatcher(this))
+    m_cellWatcher(new QOfonoExtCellWatcher(this)),
+    m_mlsFallbacksLacfEnabled(true),
+    m_mlsFallbacksIpfEnabled(true),
+    m_signalUpdateCell(false),
+    m_signalUpdateWiFi(false)    
 {
     if (staticProvider)
         qFatal("Only a single instance of MlsdbProvider is supported.");
@@ -90,6 +94,30 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     qDBusRegisterMetaType<Accuracy>();
 
     staticProvider = this;
+
+    QFile gpsConf(QStringLiteral("/system/etc/gps.conf"));
+    if (gpsConf.open(QIODevice::ReadOnly)) {
+
+        while (!gpsConf.atEnd()) {
+            const QByteArray line = gpsConf.readLine().trimmed();
+            if (line.startsWith('#'))
+                continue;
+
+            const QList<QByteArray> split = line.split('=');
+            if (split.length() != 2)
+                continue;
+
+            const QByteArray key = split.at(0).trimmed();
+            const QByteArray data = split.at(1).trimmed();
+
+            if (key == "MLS_FALLBACKS_LACF" && data == "FALSE") m_mlsFallbacksLacfEnabled = false;
+            if (key == "MLS_FALLBACKS_IPF" && data == "FALSE") m_mlsFallbacksIpfEnabled = false;
+        }
+    }
+
+    qCDebug(lcGeoclueMlsdb) << "  MLS_FALLBACKS_LACF" << m_mlsFallbacksLacfEnabled
+                            << "  MLS_FALLBACKS_IPF" << m_mlsFallbacksIpfEnabled;
+
 
     connect(&m_locationSettingsWatcher, &QFileSystemWatcher::fileChanged,
             this, &MlsdbProvider::updatePositioningEnabled);
@@ -288,17 +316,14 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
         m_fixLostTimer.stop();
         setStatus(StatusAcquiring);
     } else if (event->timerId() == m_recalculatePositionTimer.timerId()) {
-        if (m_positioningEnabled) {
-            calculatePositionAndEmitLocation();
+        if (m_positioningEnabled && (m_signalUpdateCell || m_signalUpdateWiFi)) {
+                m_signalUpdateCell = false;
+                m_signalUpdateWiFi = false;
+                tryFetchOnlinePosition();
         }
     } else {
         QObject::timerEvent(event);
     }
-}
-
-void MlsdbProvider::calculatePositionAndEmitLocation()
-{
-    tryFetchOnlinePosition();
 }
 
 void MlsdbProvider::tryFetchOnlinePosition()
@@ -308,6 +333,10 @@ void MlsdbProvider::tryFetchOnlinePosition()
     if (m_onlinePositioningEnabled) {
         if (!m_mlsdbOnlineLocator) {
             m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
+            m_mlsdbOnlineLocator->m_fallbacksLacf = m_mlsFallbacksLacfEnabled;
+            m_mlsdbOnlineLocator->m_fallbacksIpf = m_mlsFallbacksIpfEnabled;
+            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::wifiChanged,
+                                this, &MlsdbProvider::onlineWifiChanged);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
                     this, &MlsdbProvider::onlineLocationFound);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
@@ -366,10 +395,10 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
                                : c->type() == QOfonoExtCell::WCDMA
                                ? MLSDB_CELL_TYPE_UMTS
                                : MLSDB_CELL_TYPE_UMTS;
-        if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0) {
+        if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0 && mcc != 0) {
             locationCode = static_cast<quint32>(c->lac());
             cellId = static_cast<quint32>(c->cid());
-        } else if (c->ci() != QOfonoExtCell::InvalidValue && c->ci() != 0) {
+        } else if (c->ci() != QOfonoExtCell::InvalidValue && c->ci() != 0 && mcc != 0) {
             locationCode = static_cast<quint32>(c->tac());
             cellId = static_cast<quint32>(c->ci());
         } else {
@@ -528,10 +557,7 @@ void MlsdbProvider::updatePositioningEnabled()
 
 void MlsdbProvider::cellularNetworkRegistrationChanged()
 {
-    if (m_positioningEnabled) {
-        qCDebug(lcGeoclueMlsdb) << "cellular network registrations changed, updating position";
-        calculatePositionAndEmitLocation();
-    }
+    m_signalUpdateCell = true;
 }
 
 void MlsdbProvider::emitLocationChanged()
@@ -568,7 +594,7 @@ void MlsdbProvider::startPositioningIfNeeded()
 
     qCDebug(lcGeoclueMlsdb) << "Starting positioning";
     m_positioningStarted = true;
-    calculatePositionAndEmitLocation();
+    tryFetchOnlinePosition();
     quint32 updateInterval = minimumRequestedUpdateInterval();
     m_recalculatePositionTimer.start(updateInterval, this);
 }
