@@ -23,6 +23,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtCore/QLoggingCategory>
 #include <QtGlobal>
+#include <QSettings>
 
 #include <sailfishkeyprovider.h>
 #include <qofonosimmanager.h>
@@ -45,8 +46,18 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_modemManager(new QOfonoExtModemManager(this))
     , m_simManager(0)
     , m_networkManager(new NetworkManager(this))
+    , m_fallbacksLacf(true)
+    , m_fallbacksIpf(true)
     , m_currentReply(0)
 {
+    QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
+    QSettings settings(MLSConfigFile, QSettings::IniFormat);
+    m_fallbacksLacf = settings.value("MLS/FALLBACKS_LACF", true).toBool();
+    m_fallbacksIpf = settings.value("MLS/FALLBACKS_IPF", true).toBool();
+
+    qCDebug(lcGeoclueMlsdb) << "MLS_FALLBACKS_LACF" << m_fallbacksLacf
+                            << "MLS_FALLBACKS_IPF" << m_fallbacksIpf;
+
     connect(m_nam, SIGNAL(finished(QNetworkReply*)), SLOT(requestOnlineLocationFinished(QNetworkReply*)));
     connect(m_modemManager, SIGNAL(enabledModemsChanged(QStringList)), SLOT(enabledModemsChanged(QStringList)));
     connect(m_modemManager, SIGNAL(defaultVoiceModemChanged(QString)), SLOT(defaultVoiceModemChanged(QString)));
@@ -77,11 +88,6 @@ void MlsdbOnlineLocator::defaultVoiceModemChanged(const QString &modem)
     setupSimManager();
 }
 
-bool MlsdbOnlineLocator::haveFieldData(const QList<MlsdbProvider::CellPositioningData> &cells)
-{
-    return !(cells.isEmpty() && m_wifiServices.isEmpty() && (!m_simManager || !m_simManager->isValid()));
-}
-
 bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioningData> &cells)
 {
     if (!loadMlsKey()) {
@@ -94,20 +100,19 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
         return true;
     }
 
-    if (!haveFieldData(cells)) {
-        // no field data available
-        qCDebug(lcGeoclueMlsdbOnline) << "No field data available for MLS online request";
+    QVariantMap map;
+    map.unite(cellTowerFields(cells));
+    map.unite(wifiAccessPointFields());
+    if (map.isEmpty() && !m_fallbacksLacf && !m_fallbacksIpf) {
+        // no field data(cell, wifi) available
+        qCDebug(lcGeoclueMlsdbOnline) << "No field data(cell, wifi) available for MLS online request";
         return false;
     }
+    map.unite(globalFields());
+    map.unite(fallbackFields());
 
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QVariantMap map;
-    map.unite(globalFields());
-    map.unite(cellTowerFields(cells));
-    map.unite(wifiAccessPointFields());
-    map.unite(fallbackFields());
 
     QJsonDocument doc = QJsonDocument::fromVariant(map);
     QByteArray json = doc.toJson();
@@ -207,6 +212,7 @@ QVariantMap MlsdbOnlineLocator::globalFields()
 QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells)
 {
     QVariantMap map;
+    if (cells.isEmpty()) return map;    
     QVariantList cellTowers;
     Q_FOREACH (const MlsdbProvider::CellPositioningData &cell, cells) {
         QVariantMap cellTowerMap;
@@ -249,6 +255,7 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
 QVariantMap MlsdbOnlineLocator::wifiAccessPointFields()
 {
     QVariantMap map;
+    if (m_wifiServices.isEmpty()) return map; 
     QVariantList wifiInfoList;
     for (int i=0; i<m_wifiServices.count(); i++) {
         NetworkService *service = m_wifiServices.at(i);
@@ -276,11 +283,11 @@ QVariantMap MlsdbOnlineLocator::fallbackFields()
     // If no exact cell match can be found, fall back from exact cell position estimates to more
     // coarse grained cell location area estimates, rather than going directly to an even worse
     // GeoIP based estimate.
-    fallbacks["lacf"] = true;
+    fallbacks["lacf"] = m_fallbacksLacf;
 
     // If no position can be estimated based on any of the provided data points, fall back to an
     // estimate based on a GeoIP database based on the senders IP address at the time of the query.
-    fallbacks["ipf"] = true;
+    fallbacks["ipf"] = m_fallbacksIpf;
 
     QVariantMap map;
     map["fallbacks"] = fallbacks;

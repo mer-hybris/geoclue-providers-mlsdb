@@ -55,7 +55,6 @@ private Q_SLOTS:
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
 
-    bool haveFieldData(const QList<MlsdbProvider::CellPositioningData> &cells);
     QVariantMap globalFields();
     QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells);
     QVariantMap wifiAccessPointFields();
@@ -73,6 +72,9 @@ private:
 
     QVector<NetworkService*> m_wifiServices;
     QString m_mlsKey;
+
+    bool m_fallbacksLacf;
+    bool m_fallbacksIpf;
 };
 
 #endif // MLSDBONLINELOCATOR_H
