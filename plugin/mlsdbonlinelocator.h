@@ -44,6 +44,7 @@ public:
 signals:
     void locationFound(double latitude, double longitude, double accuracy);
     void error(const QString &errorString);
+    void wifiChanged();
 
 private Q_SLOTS:
     void networkServicesChanged();

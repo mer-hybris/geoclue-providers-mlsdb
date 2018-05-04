@@ -73,6 +73,7 @@ MlsdbOnlineLocator::~MlsdbOnlineLocator()
 void MlsdbOnlineLocator::networkServicesChanged()
 {
     m_wifiServices = m_networkManager->getServices("wifi");
+    emit wifiChanged();
 }
 
 void MlsdbOnlineLocator::enabledModemsChanged(const QStringList &modems)
