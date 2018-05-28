@@ -79,7 +79,7 @@ void MlsdbOnlineLocator::defaultVoiceModemChanged(const QString &modem)
 
 bool MlsdbOnlineLocator::haveFieldData(const QList<MlsdbProvider::CellPositioningData> &cells)
 {
-    return !(cells.isEmpty() && m_wifiServices.isEmpty() && (!m_simManager || !m_simManager->isValid()));
+    return !((cells.isEmpty() || !m_simManager || !m_simManager->isValid()) && m_wifiServices.isEmpty());
 }
 
 bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioningData> &cells)
