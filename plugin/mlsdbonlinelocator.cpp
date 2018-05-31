@@ -107,7 +107,11 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
     map.unite(globalFields());
     map.unite(cellTowerFields(cells));
     map.unite(wifiAccessPointFields());
-    map.unite(fallbackFields());
+    if (!map.isEmpty()) {
+        // If we have no data, the fallbacks are of minimal utility.
+        // e.g. the ip-fallback would at best give city-accuracy.
+        map.unite(fallbackFields());
+    }
 
     QJsonDocument doc = QJsonDocument::fromVariant(map);
     QByteArray json = doc.toJson();
