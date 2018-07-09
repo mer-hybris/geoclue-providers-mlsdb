@@ -45,9 +45,9 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_modemManager(new QOfonoExtModemManager(this))
     , m_simManager(0)
     , m_networkManager(new NetworkManager(this))
+    , m_currentReply(0)
     , m_fallbacksLacf(true)
     , m_fallbacksIpf(true)
-    , m_currentReply(0)
 {
     QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
     QSettings settings(MLSConfigFile, QSettings::IniFormat);
