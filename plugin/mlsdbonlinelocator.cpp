@@ -11,6 +11,7 @@
 */
 
 #include "mlsdbonlinelocator.h"
+#include "mlsdblogging.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -38,17 +39,15 @@
  * See https://mozilla.github.io/ichnaea/api/geolocate.html for protocol documentation.
  */
 
-Q_LOGGING_CATEGORY(lcGeoclueMlsdbOnline, "geoclue.provider.mlsdb.online", QtWarningMsg)
-
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     : QObject(parent)
     , m_nam(new QNetworkAccessManager(this))
     , m_modemManager(new QOfonoExtModemManager(this))
     , m_simManager(0)
     , m_networkManager(new NetworkManager(this))
+    , m_currentReply(0)
     , m_fallbacksLacf(true)
     , m_fallbacksIpf(true)
-    , m_currentReply(0)
 {
     QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
     QSettings settings(MLSConfigFile, QSettings::IniFormat);

@@ -37,12 +37,14 @@ geoclue_provider.path = /usr/share/geoclue-providers
 
 include (../common/common.pri)
 HEADERS += \
+    mlsdblogging.h \
     mlsdbprovider.h \
     mlsdbonlinelocator.h \
     locationtypes.h
 
 SOURCES += \
     main.cpp \
+    mlsdblogging.cpp \
     mlsdbprovider.cpp \
     mlsdbonlinelocator.cpp
 
