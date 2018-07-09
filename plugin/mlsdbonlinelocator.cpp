@@ -11,6 +11,7 @@
 */
 
 #include "mlsdbonlinelocator.h"
+#include "mlsdblogging.h"
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -37,8 +38,6 @@
  * HTTP requests are sent based on the Mozilla Location Services API.
  * See https://mozilla.github.io/ichnaea/api/geolocate.html for protocol documentation.
  */
-
-Q_LOGGING_CATEGORY(lcGeoclueMlsdbOnline, "geoclue.provider.mlsdb.online", QtWarningMsg)
 
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     : QObject(parent)
