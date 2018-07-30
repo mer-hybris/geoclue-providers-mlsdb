@@ -102,7 +102,7 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
     QVariantMap map;
     map.unite(cellTowerFields(cells));
     map.unite(wifiAccessPointFields());
-    if (map.isEmpty() && !m_fallbacksLacf && !m_fallbacksIpf) {
+    if (map.isEmpty()) {
         // no field data(cell, wifi) available
         qCDebug(lcGeoclueMlsdbOnline) << "No field data(cell, wifi) available for MLS online request";
         return false;
