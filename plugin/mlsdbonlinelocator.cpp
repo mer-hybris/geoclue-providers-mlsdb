@@ -243,7 +243,16 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
         if (cell.uniqueCellId.cellId() != 0) {
             cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
         }
+        if (cellTowerMap.size() < 5) {
+            // "Cell based position estimates require each cell record to contain
+            // at least the five radioType, mobileCountryCode, mobileNetworkCode,
+            // locationAreaCode and cellId values."
+            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+            continue;
+        }
         if (cell.signalStrength != 0) {
+            // "Position estimates do get a lot more precise if in addition to these
+            // unique identifiers at least signalStrength data can be provided for each entry."
             cellTowerMap["signalStrength"] = cell.signalStrength;
         }
         cellTowers.append(cellTowerMap);
