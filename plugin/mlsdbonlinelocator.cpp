@@ -265,6 +265,12 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields()
             // _nomap must NOT be used for privacy reasons."
             continue;
         }
+        if (service->bssid().isEmpty()) {
+            // "Though in order to get a Bluetooth or WiFi based position estimate at least
+            // two networks need to be provided and for each the macAddress needs to be known."
+            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+            continue;
+        }
         QVariantMap wifiInfo;
         wifiInfo["macAddress"] = service->bssid();
         wifiInfo["frequency"] = service->frequency();
