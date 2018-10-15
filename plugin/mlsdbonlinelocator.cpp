@@ -271,6 +271,12 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields()
         wifiInfo["signalStrength"] = service->strength();
         wifiInfoList.append(wifiInfo);
     }
+    if (wifiInfoList.size() < 2) {
+      // "The minimum of two networks is a mandatory privacy
+      // restriction for Bluetooth and WiFi based location services."
+      // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+      return map;
+    }
     map["wifiAccessPoints"] = wifiInfoList;
     return map;
 }
