@@ -257,7 +257,8 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
         }
         cellTowers.append(cellTowerMap);
     }
-    map["cellTowers"] = cellTowers;
+    if (!cellTowers.isEmpty())
+       map["cellTowers"] = cellTowers;
     return map;
 }
 
