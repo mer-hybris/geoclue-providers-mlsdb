@@ -44,7 +44,7 @@ public:
 signals:
     void locationFound(double latitude, double longitude, double accuracy);
     void error(const QString &errorString);
-    void wifiChanged();
+    void wlanChanged();
 
 private Q_SLOTS:
     void networkServicesChanged();
@@ -58,7 +58,7 @@ private:
 
     QVariantMap globalFields();
     QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells);
-    QVariantMap wifiAccessPointFields();
+    QVariantMap wlanAccessPointFields();
     QVariantMap fallbackFields();
 
     void setupSimManager();
@@ -71,7 +71,7 @@ private:
     QNetworkReply *m_currentReply;
     QTimer m_replyTimer;
 
-    QVector<NetworkService*> m_wifiServices;
+    QVector<NetworkService*> m_wlanServices;
     QString m_mlsKey;
 
     bool m_fallbacksLacf;

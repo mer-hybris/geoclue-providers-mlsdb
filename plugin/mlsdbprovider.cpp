@@ -80,7 +80,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_onlinePositioningEnabled(false),
     m_cellWatcher(new QOfonoExtCellWatcher(this)),
     m_signalUpdateCell(false),
-    m_signalUpdateWiFi(false)
+    m_signalUpdateWlan(false)
 {
     if (staticProvider)
         qFatal("Only a single instance of MlsdbProvider is supported.");
@@ -287,9 +287,9 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
         m_fixLostTimer.stop();
         setStatus(StatusAcquiring);
     } else if (event->timerId() == m_recalculatePositionTimer.timerId()) {
-        if (m_positioningEnabled && (m_signalUpdateCell || m_signalUpdateWiFi)) {
+        if (m_positioningEnabled && (m_signalUpdateCell || m_signalUpdateWlan)) {
                 m_signalUpdateCell = false;
-                m_signalUpdateWiFi = false;
+                m_signalUpdateWlan = false;
                 calculatePositionAndEmitLocation();
         }
     } else {
@@ -309,8 +309,8 @@ void MlsdbProvider::tryFetchOnlinePosition()
     if (m_onlinePositioningEnabled) {
         if (!m_mlsdbOnlineLocator) {
             m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
-            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::wifiChanged,
-                                this, &MlsdbProvider::onlineWifiChanged);
+            connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::wlanChanged,
+                                this, &MlsdbProvider::onlineWlanChanged);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
                     this, &MlsdbProvider::onlineLocationFound);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
@@ -325,9 +325,9 @@ void MlsdbProvider::tryFetchOnlinePosition()
     updateLocationFromCells(cellIds);
 }
 
-void MlsdbProvider::onlineWifiChanged()
+void MlsdbProvider::onlineWlanChanged()
 {
-    m_signalUpdateWiFi = true;
+    m_signalUpdateWlan = true;
 }
 
 void MlsdbProvider::onlineLocationFound(double latitude, double longitude, double accuracy)

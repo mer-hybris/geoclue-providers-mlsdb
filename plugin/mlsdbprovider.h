@@ -116,7 +116,7 @@ private Q_SLOTS:
     void cellularNetworkRegistrationChanged();
     void onlineLocationFound(double latitude, double longitude, double accuracy);
     void onlineLocationError(const QString &errorString);
-    void onlineWifiChanged();
+    void onlineWlanChanged();
 
 protected:
     void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE; // QObject
@@ -166,7 +166,7 @@ private:
     QBasicTimer m_recalculatePositionTimer;
 
     bool m_signalUpdateCell;
-    bool m_signalUpdateWiFi;
+    bool m_signalUpdateWlan;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MlsdbProvider::PositionFields)
