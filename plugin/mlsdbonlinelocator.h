@@ -39,7 +39,10 @@ public:
     explicit MlsdbOnlineLocator(QObject *parent = 0);
     ~MlsdbOnlineLocator();
 
-    bool findLocation(const QList<MlsdbProvider::CellPositioningData> &cells);
+    QPair<QDateTime, QVariantMap> buildLocationQuery(
+        const QList<MlsdbProvider::CellPositioningData> &cells,
+        const QPair<QDateTime, QVariantMap> &oldQuery) const;
+    bool findLocation(const QPair<QDateTime, QVariantMap> &request);
 
 signals:
     void locationFound(double latitude, double longitude, double accuracy);
@@ -76,6 +79,9 @@ private:
 
     bool m_fallbacksLacf;
     bool m_fallbacksIpf;
+
+    mutable quint32 m_adaptiveInterval;
+    mutable QVector<qint64> m_queryTimestamps;
 };
 
 #endif // MLSDBONLINELOCATOR_H

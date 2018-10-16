@@ -34,10 +34,32 @@
 
 #define REQUEST_REPLY_TIMEOUT_INTERVAL 10000 /* 10 seconds */
 
+#define REQUEST_TIMESTAMPS_TO_TRACK 10
+#define REQUEST_BASE_ADAPTIVE_INTERVAL 60000 /* 60 seconds */
+#define REQUEST_MODIFY_ADAPTIVE_INTERVAL 10000 /* 10 seconds */
+
 /*
  * HTTP requests are sent based on the Mozilla Location Services API.
  * See https://mozilla.github.io/ichnaea/api/geolocate.html for protocol documentation.
  */
+
+namespace {
+    QList<quint32> cellIdsFromQueryData(const QVariantMap &queryData)
+    {
+        QList<quint32> cellIds;
+
+        const QVariantList cellTowers = queryData.value(QLatin1String("cellTowers")).toList();
+        for (const QVariant &ct : cellTowers) {
+            const QVariantMap ctm = ct.toMap();
+            const quint32 cellId = ctm.value(QLatin1String("cellId")).value<quint32>();
+            if (cellId != 0 && !cellIds.contains(cellId)) {
+                cellIds.append(cellId);
+            }
+        }
+
+        return cellIds;
+    }
+}
 
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     : QObject(parent)
@@ -48,6 +70,7 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_currentReply(0)
     , m_fallbacksLacf(true)
     , m_fallbacksIpf(true)
+    , m_adaptiveInterval(REQUEST_BASE_ADAPTIVE_INTERVAL)
 {
     QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
     QSettings settings(MLSConfigFile, QSettings::IniFormat);
@@ -88,8 +111,88 @@ void MlsdbOnlineLocator::defaultVoiceModemChanged(const QString &modem)
     setupSimManager();
 }
 
-bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioningData> &cells)
+QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(
+        const QList<MlsdbProvider::CellPositioningData> &cells,
+        const QPair<QDateTime, QVariantMap> &oldQuery) const
 {
+    static bool waitForWlanInfo = true;
+    const QDateTime currDt = QDateTime::currentDateTimeUtc();
+    QVariantMap map;
+    map.unite(cellTowerFields(cells));
+    map.unite(wlanAccessPointFields());
+
+    if (map.isEmpty()) {
+        // no field data(cell, wifi) available
+        qCDebug(lcGeoclueMlsdbOnline) << "No field data(cell, wifi) available for MLS online request";
+    } else if (!map.contains(QStringLiteral("wifiAccessPoints")) && waitForWlanInfo) {
+        // it can take some time to receive wlan network info.
+        // the MLS online lookup is far more accurate if we have some wlan network info to provide.
+        // so, if we have no wlan info, and this was the first request, don't do an online request yet.
+        qCDebug(lcGeoclueMlsdbOnline) << "No wifi data available for MLS online request, postponing";
+        waitForWlanInfo = false;
+    } else {
+        map.unite(globalFields());
+        map.unite(fallbackFields());
+
+        // Only send the query if we have more information than previously
+        // or if sufficient time has passed since the last query we performed.
+        const bool firstTimeQuery = oldQuery.first.isNull() || oldQuery.second.isEmpty();
+        const bool intervalExceeded = oldQuery.first.isNull() || oldQuery.first.msecsTo(currDt) >= m_adaptiveInterval;
+        const bool moreInfo = map.keys().size() > oldQuery.second.keys().size();
+        const bool newCells = cellIdsFromQueryData(oldQuery.second) != cellIdsFromQueryData(map);
+
+        if (firstTimeQuery || intervalExceeded || moreInfo || newCells) {
+            // adaptively back-off future requests to avoid server-side throttling.
+            static quint32 backOffFactor = 8;
+
+            // we want to aim for approximately 6 minutes per request.
+            const qint64 deltaMsecs = (m_queryTimestamps.size() < 3)
+                                    ? 0
+                                    : (m_queryTimestamps.first() - m_queryTimestamps.last());
+            const double minutesPerQuery = (m_queryTimestamps.size() < 3)
+                                         ? 6
+                                         : ((deltaMsecs / (1000.0 * 60.0)) / m_queryTimestamps.size());
+            if (minutesPerQuery > 6 || backOffFactor > 64) {
+                // it's been a long time since the last request, reduce the back off factor.
+                backOffFactor = backOffFactor <= 2 ? 1 : (backOffFactor / 2);
+            } else if (minutesPerQuery < 4) {
+                // too many recent requests, increase the back-off factor.
+                backOffFactor = backOffFactor >= 32 ? 64 : (backOffFactor * 2);
+            }
+
+            // max interval will be about 12 minutes (1 + 10.667 minutes).
+            m_adaptiveInterval = REQUEST_BASE_ADAPTIVE_INTERVAL + (REQUEST_MODIFY_ADAPTIVE_INTERVAL * backOffFactor);
+
+            if (backOffFactor == 1 || intervalExceeded) {
+                // return the query data for the request.
+                qCDebug(lcGeoclueMlsdbOnline) << "Performing MLS online query due to conditions:"
+                                              << "first:" << firstTimeQuery
+                                              << "interval:" << intervalExceeded
+                                              << "info:" << moreInfo
+                                              << "cells:" << newCells;
+                m_queryTimestamps.prepend(QDateTime::currentMSecsSinceEpoch());
+                if (m_queryTimestamps.size() > REQUEST_TIMESTAMPS_TO_TRACK) {
+                    m_queryTimestamps.removeLast();
+                }
+                return qMakePair(currDt, map);
+            } else {
+                qCDebug(lcGeoclueMlsdbOnline) << "Locally throttling online MLS query due to interval";
+            }
+        } else {
+            qCDebug(lcGeoclueMlsdbOnline) << "No required conditions true for online MLS query!";
+        }
+    }
+
+    return qMakePair(QDateTime(), QVariantMap());
+}
+
+bool MlsdbOnlineLocator::findLocation(const QPair<QDateTime, QVariantMap> &query)
+{
+    if (query.first.isNull() || query.second.isEmpty()) {
+        qCDebug(lcGeoclueMlsdbOnline) << "Empty query data provided";
+        return false;
+    }
+
     if (!loadMlsKey()) {
         qCDebug(lcGeoclueMlsdbOnline) << "Unable to load MLS API key";
         return false;
@@ -100,21 +203,10 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
         return true;
     }
 
-    QVariantMap map;
-    map.unite(cellTowerFields(cells));
-    map.unite(wlanAccessPointFields());
-    if (map.isEmpty()) {
-        // no field data(cell, wifi) available
-        qCDebug(lcGeoclueMlsdbOnline) << "No field data(cell, wifi) available for MLS online request";
-        return false;
-    }
-    map.unite(globalFields());
-    map.unite(fallbackFields());
-
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    const QJsonDocument doc = QJsonDocument::fromVariant(map);
+    const QJsonDocument doc = QJsonDocument::fromVariant(query.second);
     const QByteArray json = doc.toJson();
     m_currentReply = m_nam->post(req, json);
     if (m_currentReply->error() != QNetworkReply::NoError) {

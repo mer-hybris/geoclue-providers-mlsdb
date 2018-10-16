@@ -55,7 +55,7 @@ public:
     LocationData(const LocationData &other)
     :   QSharedData(other), timestamp(other.timestamp), latitude(other.latitude),
         longitude(other.longitude), altitude(other.altitude), speed(other.speed),
-        direction(other.direction), climb(other.climb)
+        direction(other.direction), climb(other.climb), accuracy(other.accuracy)
     { }
     ~LocationData() { }
 
