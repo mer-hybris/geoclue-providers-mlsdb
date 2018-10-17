@@ -114,8 +114,8 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QJsonDocument doc = QJsonDocument::fromVariant(map);
-    QByteArray json = doc.toJson();
+    const QJsonDocument doc = QJsonDocument::fromVariant(map);
+    const QByteArray json = doc.toJson();
     m_currentReply = m_nam->post(req, json);
     if (m_currentReply->error() != QNetworkReply::NoError) {
         qCDebug(lcGeoclueMlsdbOnline) << "POST request failed:" << m_currentReply->errorString();
@@ -196,7 +196,7 @@ bool MlsdbOnlineLocator::readServerResponseData(const QByteArray &data, QString 
     return true;
 }
 
-QVariantMap MlsdbOnlineLocator::globalFields()
+QVariantMap MlsdbOnlineLocator::globalFields() const
 {
     QVariantMap map;
     if (!m_simManager || !m_simManager->isValid()) {
@@ -209,95 +209,99 @@ QVariantMap MlsdbOnlineLocator::globalFields()
     return map;
 }
 
-QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells)
+QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells) const
 {
     QVariantMap map;
-    if (cells.isEmpty()) return map;    
-    QVariantList cellTowers;
-    Q_FOREACH (const MlsdbProvider::CellPositioningData &cell, cells) {
-        QVariantMap cellTowerMap;
-        // supported radio types: gsm, wcdma or lte
-        switch (cell.uniqueCellId.cellType()) {
-        case MLSDB_CELL_TYPE_LTE:
-            cellTowerMap["radioType"] = "lte";
-            break;
-        case MLSDB_CELL_TYPE_GSM:
-            cellTowerMap["radioType"] = "gsm";
-            break;
-        case MLSDB_CELL_TYPE_UMTS:
-            cellTowerMap["radioType"] = "wcdma";
-            break;
-        default:
-            // type currently unsupported by MLS, don't add it to the field
-            break;
+    if (!cells.isEmpty()) {
+        QVariantList cellTowers;
+        Q_FOREACH (const MlsdbProvider::CellPositioningData &cell, cells) {
+            QVariantMap cellTowerMap;
+            // supported radio types: gsm, wcdma or lte
+            switch (cell.uniqueCellId.cellType()) {
+            case MLSDB_CELL_TYPE_LTE:
+                cellTowerMap["radioType"] = "lte";
+                break;
+            case MLSDB_CELL_TYPE_GSM:
+                cellTowerMap["radioType"] = "gsm";
+                break;
+            case MLSDB_CELL_TYPE_UMTS:
+                cellTowerMap["radioType"] = "wcdma";
+                break;
+            default:
+                // type currently unsupported by MLS, don't add it to the field
+                break;
+            }
+            if (cell.uniqueCellId.mcc() != 0) {
+                cellTowerMap["mobileCountryCode"] = cell.uniqueCellId.mcc();
+            }
+            if (cell.uniqueCellId.mnc() != 0) {
+                cellTowerMap["mobileNetworkCode"] = cell.uniqueCellId.mnc();
+            }
+            if (cell.uniqueCellId.locationCode() != 0) {
+                cellTowerMap["locationAreaCode"] = cell.uniqueCellId.locationCode();
+            }
+            if (cell.uniqueCellId.cellId() != 0) {
+                cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
+            }
+            if (cellTowerMap.size() < 5) {
+                // "Cell based position estimates require each cell record to contain
+                // at least the five radioType, mobileCountryCode, mobileNetworkCode,
+                // locationAreaCode and cellId values."
+                // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+                continue;
+            }
+            if (cell.signalStrength != 0) {
+                // "Position estimates do get a lot more precise if in addition to these
+                // unique identifiers at least signalStrength data can be provided for each entry."
+                cellTowerMap["signalStrength"] = cell.signalStrength;
+            }
+            cellTowers.append(cellTowerMap);
         }
-        if (cell.uniqueCellId.mcc() != 0) {
-            cellTowerMap["mobileCountryCode"] = cell.uniqueCellId.mcc();
+        if (!cellTowers.isEmpty()) {
+            map["cellTowers"] = cellTowers;
         }
-        if (cell.uniqueCellId.mnc() != 0) {
-            cellTowerMap["mobileNetworkCode"] = cell.uniqueCellId.mnc();
-        }
-        if (cell.uniqueCellId.locationCode() != 0) {
-            cellTowerMap["locationAreaCode"] = cell.uniqueCellId.locationCode();
-        }
-        if (cell.uniqueCellId.cellId() != 0) {
-            cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
-        }
-        if (cellTowerMap.size() < 5) {
-            // "Cell based position estimates require each cell record to contain
-            // at least the five radioType, mobileCountryCode, mobileNetworkCode,
-            // locationAreaCode and cellId values."
-            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
-            continue;
-        }
-        if (cell.signalStrength != 0) {
-            // "Position estimates do get a lot more precise if in addition to these
-            // unique identifiers at least signalStrength data can be provided for each entry."
-            cellTowerMap["signalStrength"] = cell.signalStrength;
-        }
-        cellTowers.append(cellTowerMap);
     }
-    if (!cellTowers.isEmpty())
-       map["cellTowers"] = cellTowers;
+
     return map;
 }
 
-QVariantMap MlsdbOnlineLocator::wlanAccessPointFields()
+QVariantMap MlsdbOnlineLocator::wlanAccessPointFields() const
 {
     QVariantMap map;
-    if (m_wlanServices.isEmpty()) return map;
-    QVariantList wifiInfoList;
-    for (int i=0; i<m_wlanServices.count(); i++) {
-        NetworkService *service = m_wlanServices.at(i);
-        if (service->hidden() || service->name().endsWith(QStringLiteral("_nomap"))) {
-            // https://mozilla.github.io/ichnaea/api/geolocate.html
-            // "Hidden WiFi networks and those whose SSID (clear text name) ends with the string
-            // _nomap must NOT be used for privacy reasons."
-            continue;
+    if (!m_wlanServices.isEmpty()) {
+        QVariantList wifiInfoList;
+        for (int i = 0; i < m_wlanServices.count(); i++) {
+            NetworkService *service = m_wlanServices.at(i);
+            if (service->hidden() || service->name().endsWith(QStringLiteral("_nomap"))) {
+                // https://mozilla.github.io/ichnaea/api/geolocate.html
+                // "Hidden WiFi networks and those whose SSID (clear text name) ends with the string
+                // _nomap must NOT be used for privacy reasons."
+                continue;
+            }
+            if (service->bssid().isEmpty()) {
+                // "Though in order to get a Bluetooth or WiFi based position estimate at least
+                // two networks need to be provided and for each the macAddress needs to be known."
+                // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+                continue;
+            }
+            QVariantMap wifiInfo;
+            wifiInfo["macAddress"] = service->bssid();
+            wifiInfo["frequency"] = service->frequency();
+            wifiInfo["signalStrength"] = service->strength();
+            wifiInfoList.append(wifiInfo);
         }
-        if (service->bssid().isEmpty()) {
-            // "Though in order to get a Bluetooth or WiFi based position estimate at least
-            // two networks need to be provided and for each the macAddress needs to be known."
+        if (wifiInfoList.size() >= 2) {
+            // "The minimum of two networks is a mandatory privacy
+            // restriction for Bluetooth and WiFi based location services."
             // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
-            continue;
+            map["wifiAccessPoints"] = wifiInfoList;
         }
-        QVariantMap wifiInfo;
-        wifiInfo["macAddress"] = service->bssid();
-        wifiInfo["frequency"] = service->frequency();
-        wifiInfo["signalStrength"] = service->strength();
-        wifiInfoList.append(wifiInfo);
     }
-    if (wifiInfoList.size() < 2) {
-      // "The minimum of two networks is a mandatory privacy
-      // restriction for Bluetooth and WiFi based location services."
-      // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
-      return map;
-    }
-    map["wifiAccessPoints"] = wifiInfoList;
+
     return map;
 }
 
-QVariantMap MlsdbOnlineLocator::fallbackFields()
+QVariantMap MlsdbOnlineLocator::fallbackFields() const
 {
     QVariantMap fallbacks;
 

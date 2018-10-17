@@ -56,10 +56,10 @@ private Q_SLOTS:
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
 
-    QVariantMap globalFields();
-    QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells);
-    QVariantMap wlanAccessPointFields();
-    QVariantMap fallbackFields();
+    QVariantMap globalFields() const;
+    QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells) const;
+    QVariantMap wlanAccessPointFields() const;
+    QVariantMap fallbackFields() const;
 
     void setupSimManager();
     bool loadMlsKey();

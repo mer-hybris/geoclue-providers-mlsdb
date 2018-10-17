@@ -130,7 +130,6 @@ private:
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
 
-    void tryFetchOnlinePosition();
     QList<CellPositioningData> seenCellIds() const;
     void updateLocationFromCells(const QList<CellPositioningData> &cells);
     bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);

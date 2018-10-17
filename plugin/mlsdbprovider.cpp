@@ -299,12 +299,7 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 
 void MlsdbProvider::calculatePositionAndEmitLocation()
 {
-    tryFetchOnlinePosition();
-}
-
-void MlsdbProvider::tryFetchOnlinePosition()
-{
-    QList<CellPositioningData> cellIds = seenCellIds();
+    const QList<CellPositioningData> cellIds = seenCellIds();
 
     if (m_onlinePositioningEnabled) {
         if (!m_mlsdbOnlineLocator) {
