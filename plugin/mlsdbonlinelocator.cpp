@@ -72,7 +72,8 @@ MlsdbOnlineLocator::~MlsdbOnlineLocator()
 
 void MlsdbOnlineLocator::networkServicesChanged()
 {
-    m_wifiServices = m_networkManager->getServices("wifi");
+    m_wlanServices = m_networkManager->getServices("wifi");
+    emit wlanChanged();
 }
 
 void MlsdbOnlineLocator::enabledModemsChanged(const QStringList &modems)
@@ -101,7 +102,7 @@ bool MlsdbOnlineLocator::findLocation(const QList<MlsdbProvider::CellPositioning
 
     QVariantMap map;
     map.unite(cellTowerFields(cells));
-    map.unite(wifiAccessPointFields());
+    map.unite(wlanAccessPointFields());
     if (map.isEmpty()) {
         // no field data(cell, wifi) available
         qCDebug(lcGeoclueMlsdbOnline) << "No field data(cell, wifi) available for MLS online request";
@@ -251,15 +252,14 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
     return map;
 }
 
-QVariantMap MlsdbOnlineLocator::wifiAccessPointFields()
+QVariantMap MlsdbOnlineLocator::wlanAccessPointFields()
 {
     QVariantMap map;
-    if (m_wifiServices.isEmpty()) return map; 
+    if (m_wlanServices.isEmpty()) return map;
     QVariantList wifiInfoList;
-    for (int i=0; i<m_wifiServices.count(); i++) {
-        NetworkService *service = m_wifiServices.at(i);
-        if (service->hidden()
-                || service->name().endsWith(QStringLiteral("_nomap"))) {
+    for (int i=0; i<m_wlanServices.count(); i++) {
+        NetworkService *service = m_wlanServices.at(i);
+        if (service->hidden() || service->name().endsWith(QStringLiteral("_nomap"))) {
             // https://mozilla.github.io/ichnaea/api/geolocate.html
             // "Hidden WiFi networks and those whose SSID (clear text name) ends with the string
             // _nomap must NOT be used for privacy reasons."
