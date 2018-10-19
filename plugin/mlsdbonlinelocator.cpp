@@ -243,12 +243,22 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
         if (cell.uniqueCellId.cellId() != 0) {
             cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
         }
+        if (cellTowerMap.size() < 5) {
+            // "Cell based position estimates require each cell record to contain
+            // at least the five radioType, mobileCountryCode, mobileNetworkCode,
+            // locationAreaCode and cellId values."
+            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+            continue;
+        }
         if (cell.signalStrength != 0) {
+            // "Position estimates do get a lot more precise if in addition to these
+            // unique identifiers at least signalStrength data can be provided for each entry."
             cellTowerMap["signalStrength"] = cell.signalStrength;
         }
         cellTowers.append(cellTowerMap);
     }
-    map["cellTowers"] = cellTowers;
+    if (!cellTowers.isEmpty())
+       map["cellTowers"] = cellTowers;
     return map;
 }
 
@@ -265,11 +275,23 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields()
             // _nomap must NOT be used for privacy reasons."
             continue;
         }
+        if (service->bssid().isEmpty()) {
+            // "Though in order to get a Bluetooth or WiFi based position estimate at least
+            // two networks need to be provided and for each the macAddress needs to be known."
+            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+            continue;
+        }
         QVariantMap wifiInfo;
         wifiInfo["macAddress"] = service->bssid();
         wifiInfo["frequency"] = service->frequency();
         wifiInfo["signalStrength"] = service->strength();
         wifiInfoList.append(wifiInfo);
+    }
+    if (wifiInfoList.size() < 2) {
+      // "The minimum of two networks is a mandatory privacy
+      // restriction for Bluetooth and WiFi based location services."
+      // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+      return map;
     }
     map["wifiAccessPoints"] = wifiInfoList;
     return map;
