@@ -20,6 +20,8 @@
 #include <QtCore/QList>
 #include <QtCore/QSet>
 #include <QtCore/QMap>
+#include <QtCore/QDateTime>
+#include <QtCore/QVariantMap>
 #include <QtDBus/QDBusContext>
 
 #include "locationtypes.h"
@@ -130,7 +132,6 @@ private:
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
 
-    void tryFetchOnlinePosition();
     QList<CellPositioningData> seenCellIds() const;
     void updateLocationFromCells(const QList<CellPositioningData> &cells);
     bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);
@@ -144,6 +145,7 @@ private:
 
     MlsdbOnlineLocator *m_mlsdbOnlineLocator;
     bool m_onlinePositioningEnabled;
+    QPair<QDateTime, QVariantMap> m_previousQuery;
 
     QOfonoExtCellWatcher *m_cellWatcher;
     QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache

@@ -34,10 +34,12 @@
 
 namespace {
     MlsdbProvider *staticProvider = 0;
-    const int QuitIdleTime = 30000;             // 30s
-    const int FixTimeout = 30000;               // 30s
-    const quint32 MinimumInterval = 10000;      // 10s
-    const quint32 PreferredInitialFixTime = 0;  //  0s
+    const int MinimumCalculatedAccuracy = 2500; // 2500 metres - arbitrary but large, manual cell-based triangulation is error-prone.
+    const int QuitIdleTime = 30000;             // 30s, plugin process will kill itself if no clients request position updates in this time
+    const int FixTimeout = 30000;               // 30s, status will change from Available to Acquiring if no position update can be calculated in this time since last update.
+    const quint32 MinimumInterval = 10000;      // 10s, the shortest interval at which the plugin will recalculate position since last update
+    const quint32 ReuseInterval = 30000;        // 30s, the amount of time a previously calculated position updates will be re-used for without recalculating new position
+    const quint32 FallbackInterval = 120000;    // 120s, the amount of time a previously calculated position update with high accuracy can supercede a newly calculated low-accuracy position
     const QString LocationSettingsDir = QStringLiteral("/etc/location/");
     const QString LocationSettingsFile = QStringLiteral("/etc/location/location.conf");
     const QString LocationSettingsEnabledKey = QStringLiteral("location/enabled");
@@ -287,10 +289,19 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
         m_fixLostTimer.stop();
         setStatus(StatusAcquiring);
     } else if (event->timerId() == m_recalculatePositionTimer.timerId()) {
-        if (m_positioningEnabled && (m_signalUpdateCell || m_signalUpdateWlan)) {
-                m_signalUpdateCell = false;
-                m_signalUpdateWlan = false;
-                calculatePositionAndEmitLocation();
+        const qint64 currTimestamp = QDateTime::currentMSecsSinceEpoch();
+        if (!m_positioningEnabled) {
+            qCDebug(lcGeoclueMlsdb) << "positioning is disabled, preventing MLS calculation";
+        } else if (m_currentLocation.timestamp() == 0
+                || ((currTimestamp - m_currentLocation.timestamp()) > ReuseInterval)
+                || m_signalUpdateCell || m_signalUpdateWlan) {
+            qCDebug(lcGeoclueMlsdb) << "calculating new position information";
+            m_signalUpdateCell = false;
+            m_signalUpdateWlan = false;
+            calculatePositionAndEmitLocation();
+        } else {
+            qCDebug(lcGeoclueMlsdb) << "re-using old position information";
+            setLocation(m_currentLocation);
         }
     } else {
         QObject::timerEvent(event);
@@ -299,13 +310,7 @@ void MlsdbProvider::timerEvent(QTimerEvent *event)
 
 void MlsdbProvider::calculatePositionAndEmitLocation()
 {
-    tryFetchOnlinePosition();
-}
-
-void MlsdbProvider::tryFetchOnlinePosition()
-{
-    QList<CellPositioningData> cellIds = seenCellIds();
-
+    const QList<CellPositioningData> cellIds = seenCellIds();
     if (m_onlinePositioningEnabled) {
         if (!m_mlsdbOnlineLocator) {
             m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
@@ -316,7 +321,10 @@ void MlsdbProvider::tryFetchOnlinePosition()
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
                     this, &MlsdbProvider::onlineLocationError);
         }
-        if (m_mlsdbOnlineLocator->findLocation(cellIds)) {
+        const QPair<QDateTime, QVariantMap> query = m_mlsdbOnlineLocator->buildLocationQuery(
+                cellIds, m_previousQuery);
+        if (m_mlsdbOnlineLocator->findLocation(query)) {
+            m_previousQuery = query;
             return;
         }
     }
@@ -466,15 +474,30 @@ void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &ce
     if (cellLocations.size()) {
         // estimate accuracy based on how many cells we have.
         Accuracy positionAccuracy;
-        positionAccuracy.setHorizontal(qMax(250, (10000 - (1000 * cellLocations.size()))));
+        positionAccuracy.setHorizontal(qMax(MinimumCalculatedAccuracy,
+                                            10000 - (1000 * cellLocations.size())));
         deviceLocation.setTimestamp(QDateTime::currentMSecsSinceEpoch());
         deviceLocation.setLatitude(deviceLatitude);
         deviceLocation.setLongitude(deviceLongitude);
         deviceLocation.setAccuracy(positionAccuracy);
     }
 
-    // and set this as our location.
-    setLocation(deviceLocation);
+    // and set this as our location if it is at least as accurate as our previous data,
+    // or if the previous data is more than two minutes old.
+    if (m_currentLocation.timestamp() != 0
+            && (QDateTime::currentMSecsSinceEpoch() - m_currentLocation.timestamp()) < FallbackInterval
+            && m_currentLocation.accuracy().horizontal() < deviceLocation.accuracy().horizontal()) {
+        qCDebug(lcGeoclueMlsdb) << "re-using old position information due to better accuracy";
+        qCDebug(lcGeoclueMlsdb) << "preferring:" << m_currentLocation.latitude() << ","
+                                                 << m_currentLocation.longitude() << ","
+                                                 << m_currentLocation.accuracy().horizontal()
+                                << "over:" << deviceLocation.latitude() << ","
+                                           << deviceLocation.longitude() << ","
+                                           << deviceLocation.accuracy().horizontal();
+        setLocation(m_currentLocation);
+    } else {
+        setLocation(deviceLocation);
+    }
 }
 
 void MlsdbProvider::setLocation(const Location &location)
