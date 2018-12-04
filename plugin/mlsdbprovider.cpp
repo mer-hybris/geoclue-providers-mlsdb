@@ -46,6 +46,9 @@ namespace {
     const QString LocationSettingsMlsEnabledKey = QStringLiteral("location/mls/enabled");
     const QString LocationSettingsMlsOnlineEnabledKey = QStringLiteral("location/mls/online_enabled");
     const QString LocationSettingsOldMlsEnabledKey = QStringLiteral("location/cell_id_positioning_enabled"); // deprecated key
+    const QString LocationSettingsDataSourceOnlineAllowedKey = QStringLiteral("location/allowed_data_sources/online");
+    const QString LocationSettingsDataSourceCellDataAllowedKey = QStringLiteral("location/allowed_data_sources/cell_data");
+    const QString LocationSettingsDataSourceWlanDataAllowedKey = QStringLiteral("location/allowed_data_sources/wlan_data");
 }
 
 QDBusArgument &operator<<(QDBusArgument &argument, const Accuracy &accuracy)
@@ -76,11 +79,14 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, Accuracy &accurac
 MlsdbProvider::MlsdbProvider(QObject *parent)
 :   QObject(parent),
     m_positioningEnabled(false),
+    m_cellDataAllowed(false),
     m_positioningStarted(false),
     m_status(StatusUnavailable),
     m_mlsdbOnlineLocator(0),
     m_onlinePositioningEnabled(false),
-    m_cellWatcher(new QOfonoExtCellWatcher(this)),
+    m_onlineDataAllowed(false),
+    m_wlanDataAllowed(false),
+    m_cellWatcher(Q_NULLPTR),
     m_signalUpdateCell(false),
     m_signalUpdateWlan(false)
 {
@@ -114,9 +120,6 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_watcher->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
     connect(m_watcher, &QDBusServiceWatcher::serviceUnregistered,
             this, &MlsdbProvider::serviceUnregistered);
-
-    connect(m_cellWatcher, &QOfonoExtCellWatcher::cellsChanged,
-            this, &MlsdbProvider::cellularNetworkRegistrationChanged);
 
     if (m_positioningEnabled) {
         cellularNetworkRegistrationChanged();
@@ -314,8 +317,9 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
     if (m_onlinePositioningEnabled) {
         if (!m_mlsdbOnlineLocator) {
             m_mlsdbOnlineLocator = new MlsdbOnlineLocator(this);
+            m_mlsdbOnlineLocator->setWlanDataAllowed(m_wlanDataAllowed);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::wlanChanged,
-                                this, &MlsdbProvider::onlineWlanChanged);
+                    this, &MlsdbProvider::onlineWlanChanged);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::locationFound,
                     this, &MlsdbProvider::onlineLocationFound);
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
@@ -365,8 +369,12 @@ void MlsdbProvider::onlineLocationError(const QString &errorString)
 
 QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
 {
-    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     QList<CellPositioningData> cells;
+    if (!m_cellDataAllowed) {
+        return cells;
+    }
+
+    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     quint32 maxNeighborSignalStrength = 1;
     QSet<MlsdbUniqueCellId> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
@@ -536,21 +544,77 @@ void MlsdbProvider::updatePositioningEnabled()
 {
     bool positioningEnabled = false;
     bool cellPositioningEnabled = false;
-    getEnabled(&positioningEnabled, &cellPositioningEnabled, &m_onlinePositioningEnabled);
+
+    bool onlineDataAllowed = false;
+    bool cellDataAllowed = false;
+    bool wlanDataAllowed = false;
+
+    getEnabled(&positioningEnabled,
+               &cellPositioningEnabled,
+               &m_onlinePositioningEnabled,
+               &onlineDataAllowed,
+               &cellDataAllowed,
+               &wlanDataAllowed);
+
+    qCDebug(lcGeoclueMlsdb) << "positioning is" << (positioningEnabled ? "enabled" : "disabled");
+    qCDebug(lcGeoclueMlsdb) << "device-local cell triangulation positioning is" << (cellPositioningEnabled ? "enabled" : "disabled");
+    qCDebug(lcGeoclueMlsdb) << "mls online service positioning is" << (m_onlinePositioningEnabled ? "enabled" : "disabled");
+
+    qCDebug(lcGeoclueMlsdb) << "now checking MDM data source restrictions...";
+
+    if (m_onlineDataAllowed != onlineDataAllowed) {
+        m_onlineDataAllowed = onlineDataAllowed;
+    }
+    if (m_onlineDataAllowed) {
+        qCDebug(lcGeoclueMlsdb) << "allowed to use online data to determine position";
+    } else {
+        qCDebug(lcGeoclueMlsdb) << "not allowed to use online data to determine position";
+    }
+
+    if (m_cellDataAllowed != cellDataAllowed) {
+        m_cellDataAllowed = cellDataAllowed;
+        if (!m_cellWatcher && m_cellDataAllowed) {
+            qCDebug(lcGeoclueMlsdb) << "listening for cell data changes";
+            m_cellWatcher = new QOfonoExtCellWatcher(this);
+            connect(m_cellWatcher, &QOfonoExtCellWatcher::cellsChanged,
+                    this, &MlsdbProvider::cellularNetworkRegistrationChanged);
+        } else if (m_cellWatcher && !m_cellDataAllowed) {
+            qCDebug(lcGeoclueMlsdb) << "no longer listening for cell data changes";
+            m_cellWatcher->deleteLater();
+            m_cellWatcher = Q_NULLPTR;
+        }
+    }
+    if (m_cellDataAllowed) {
+        qCDebug(lcGeoclueMlsdb) << "allowed to use adjacent cell id data to determine position";
+    } else {
+        qCDebug(lcGeoclueMlsdb) << "not allowed to use adjacent cell id data to determine position";
+    }
+
+    if (m_wlanDataAllowed != wlanDataAllowed) {
+        m_wlanDataAllowed = wlanDataAllowed;
+    }
+    if (m_wlanDataAllowed) {
+        qCDebug(lcGeoclueMlsdb) << "allowed to use wlan data to determine position";
+    } else {
+        qCDebug(lcGeoclueMlsdb) << "not allowed to use wlan data to determine position";
+    }
+
+    if (m_mlsdbOnlineLocator) {
+        m_mlsdbOnlineLocator->setWlanDataAllowed(m_wlanDataAllowed);
+    }
 
     bool previous = m_positioningEnabled;
     bool enabled = positioningEnabled && cellPositioningEnabled;
     if (previous == enabled) {
-        // the change to the location settings file doesn't affect this plugin.
         return;
     }
 
     if (enabled) {
-        qCDebug(lcGeoclueMlsdb) << "cellId-based positioning has been enabled";
+        qCDebug(lcGeoclueMlsdb) << "positioning has been enabled";
         m_positioningEnabled = true;
         startPositioningIfNeeded();
     } else {
-        qCDebug(lcGeoclueMlsdb) << "cellId-based positioning has been disabled";
+        qCDebug(lcGeoclueMlsdb) << "positioning has been disabled";
         m_positioningEnabled = false;
         setLocation(Location());
         stopPositioningIfNeeded();
@@ -631,7 +695,9 @@ void MlsdbProvider::setStatus(MlsdbProvider::Status status)
     Checks the state of the Location enabled setting,
     the MLS enabled setting, and the MLS online_enabled setting.
 */
-void MlsdbProvider::getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled)
+void MlsdbProvider::getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled,
+                               bool *onlinePositioningEnabled, bool *onlineDataAllowed,
+                               bool *cellDataAllowed, bool *wlanDataAllowed)
 {
     QSettings settings(LocationSettingsFile, QSettings::IniFormat);
 
@@ -643,6 +709,10 @@ void MlsdbProvider::getEnabled(bool *positioningEnabled, bool *cellPositioningEn
 
     *onlinePositioningEnabled = *cellPositioningEnabled
                             && settings.value(LocationSettingsMlsOnlineEnabledKey, false).toBool();
+
+    *onlineDataAllowed = settings.value(LocationSettingsDataSourceOnlineAllowedKey, true).toBool();
+    *cellDataAllowed = settings.value(LocationSettingsDataSourceCellDataAllowedKey, true).toBool();
+    *wlanDataAllowed = settings.value(LocationSettingsDataSourceWlanDataAllowedKey, true).toBool();
 }
 
 quint32 MlsdbProvider::minimumRequestedUpdateInterval() const

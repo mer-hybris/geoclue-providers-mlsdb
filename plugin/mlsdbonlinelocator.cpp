@@ -70,6 +70,7 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_currentReply(0)
     , m_fallbacksLacf(true)
     , m_fallbacksIpf(true)
+    , m_wlanDataAllowed(true)
     , m_adaptiveInterval(REQUEST_BASE_ADAPTIVE_INTERVAL)
 {
     QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
@@ -95,8 +96,10 @@ MlsdbOnlineLocator::~MlsdbOnlineLocator()
 
 void MlsdbOnlineLocator::networkServicesChanged()
 {
-    m_wlanServices = m_networkManager->getServices("wifi");
-    emit wlanChanged();
+    if (m_wlanDataAllowed) {
+        m_wlanServices = m_networkManager->getServices("wifi");
+        emit wlanChanged();
+    }
 }
 
 void MlsdbOnlineLocator::enabledModemsChanged(const QStringList &modems)
@@ -109,6 +112,26 @@ void MlsdbOnlineLocator::defaultVoiceModemChanged(const QString &modem)
 {
     Q_UNUSED(modem);
     setupSimManager();
+}
+
+bool MlsdbOnlineLocator::wlanDataAllowed() const
+{
+    return m_wlanDataAllowed;
+}
+
+void MlsdbOnlineLocator::setWlanDataAllowed(bool allowed)
+{
+    if (m_wlanDataAllowed != allowed) {
+        m_wlanDataAllowed = allowed;
+        emit wlanDataAllowedChanged();
+    }
+    if (m_wlanDataAllowed && m_wlanServices.isEmpty() && m_networkManager) {
+        m_wlanServices = m_networkManager->getServices("wifi");
+        emit wlanChanged();
+    } else if (!m_wlanDataAllowed) {
+        m_wlanServices.clear();
+        emit wlanChanged();
+    }
 }
 
 QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(

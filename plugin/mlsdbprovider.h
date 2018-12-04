@@ -128,7 +128,9 @@ private:
     void startPositioningIfNeeded();
     void stopPositioningIfNeeded();
     void setStatus(Status status);
-    void getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled, bool *onlinePositioningEnabled);
+    void getEnabled(bool *positioningEnabled, bool *cellPositioningEnabled,
+                    bool *onlinePositioningEnabled, bool *onlineDataAllowed,
+                    bool *cellDataAllowed, bool *wlanDataAllowed);
     quint32 minimumRequestedUpdateInterval() const;
     void calculatePositionAndEmitLocation();
 
@@ -138,6 +140,7 @@ private:
 
     QFileSystemWatcher m_locationSettingsWatcher;
     bool m_positioningEnabled;
+    bool m_cellDataAllowed;
     bool m_positioningStarted;
     Status m_status;
     Location m_currentLocation;
@@ -145,6 +148,8 @@ private:
 
     MlsdbOnlineLocator *m_mlsdbOnlineLocator;
     bool m_onlinePositioningEnabled;
+    bool m_onlineDataAllowed;
+    bool m_wlanDataAllowed;
     QPair<QDateTime, QVariantMap> m_previousQuery;
 
     QOfonoExtCellWatcher *m_cellWatcher;
