@@ -35,9 +35,15 @@ class NetworkService;
 class MlsdbOnlineLocator : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(bool wlanDataAllowed READ wlanDataAllowed WRITE setWlanDataAllowed NOTIFY wlanDataAllowedChanged);
+
 public:
     explicit MlsdbOnlineLocator(QObject *parent = 0);
     ~MlsdbOnlineLocator();
+
+    bool wlanDataAllowed() const;
+    void setWlanDataAllowed(bool allowed);
 
     QPair<QDateTime, QVariantMap> buildLocationQuery(
         const QList<MlsdbProvider::CellPositioningData> &cells,
@@ -48,6 +54,7 @@ signals:
     void locationFound(double latitude, double longitude, double accuracy);
     void error(const QString &errorString);
     void wlanChanged();
+    void wlanDataAllowedChanged();
 
 private Q_SLOTS:
     void networkServicesChanged();
@@ -79,6 +86,8 @@ private:
 
     bool m_fallbacksLacf;
     bool m_fallbacksIpf;
+
+    bool m_wlanDataAllowed;
 
     mutable quint32 m_adaptiveInterval;
     mutable QVector<qint64> m_queryTimestamps;
