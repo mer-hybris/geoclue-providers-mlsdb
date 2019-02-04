@@ -81,13 +81,13 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 %defattr(-,root,root,-)
 %{_libexecdir}/geoclue-mlsdb
 %{_datadir}/mapplauncherd/privileges.d/*
+%dir %{_datadir}/geoclue-provider-mlsdb
 %{_datadir}/dbus-1/services/org.freedesktop.Geoclue.Providers.Mlsdb.service
 %{_datadir}/geoclue-providers/geoclue-mlsdb.provider
 
 %files agreements
 %defattr(-,root,root,-)
-%dir %{_datadir}/geoclue-provider-mlsdb/agreements
-%{_datadir}/geoclue-provider-mlsdb/agreements/mls_consent_en_GB.txt
+%{_datadir}/geoclue-provider-mlsdb/agreements
 
 
 %files tool
