@@ -8,7 +8,7 @@ target.path = /usr/libexec
 QT = core dbus network
 
 CONFIG += link_pkgconfig
-PKGCONFIG += qofono-qt5 qofonoext connman-qt5 libsailfishkeyprovider
+PKGCONFIG += qofono-qt5 qofonoext connman-qt5 libsailfishkeyprovider mlite5
 
 LIBS += -lrt
 

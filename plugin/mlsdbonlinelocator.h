@@ -18,6 +18,8 @@
 #include <QtCore/QVector>
 #include <QtCore/QTimer>
 
+#include <MGConfItem>
+
 #include "mlsdbprovider.h"
 
 QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
@@ -35,8 +37,7 @@ class NetworkService;
 class MlsdbOnlineLocator : public QObject
 {
     Q_OBJECT
-
-    Q_PROPERTY(bool wlanDataAllowed READ wlanDataAllowed WRITE setWlanDataAllowed NOTIFY wlanDataAllowedChanged);
+    Q_PROPERTY(bool wlanDataAllowed READ wlanDataAllowed WRITE setWlanDataAllowed NOTIFY wlanDataAllowedChanged)
 
 public:
     explicit MlsdbOnlineLocator(QObject *parent = 0);
@@ -65,6 +66,7 @@ private Q_SLOTS:
 
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
+    void checkError(const QByteArray &data);
 
     QVariantMap globalFields() const;
     QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells) const;
@@ -91,6 +93,8 @@ private:
 
     mutable quint32 m_adaptiveInterval;
     mutable QVector<qint64> m_queryTimestamps;
+
+    MGConfItem m_keyFailureTime;
 };
 
 #endif // MLSDBONLINELOCATOR_H

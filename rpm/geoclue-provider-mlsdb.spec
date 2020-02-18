@@ -15,6 +15,7 @@ BuildRequires: pkgconfig(qofonoext)
 BuildRequires: pkgconfig(connman-qt5)
 BuildRequires: pkgconfig(libsailfishkeyprovider)
 BuildRequires: pkgconfig(qt5-boostable)
+BuildRequires: pkgconfig(mlite5)
 Requires: mapplauncherd-qt5
 Requires: %{name}-agreements
 
