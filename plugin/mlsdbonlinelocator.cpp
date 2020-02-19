@@ -44,21 +44,23 @@
  */
 
 namespace {
-    QList<quint32> cellIdsFromQueryData(const QVariantMap &queryData)
-    {
-        QList<quint32> cellIds;
+const QString KeyFailureTimeKey(QStringLiteral("/mlsprovider/keyfailure_time"));
 
-        const QVariantList cellTowers = queryData.value(QLatin1String("cellTowers")).toList();
-        for (const QVariant &ct : cellTowers) {
-            const QVariantMap ctm = ct.toMap();
-            const quint32 cellId = ctm.value(QLatin1String("cellId")).value<quint32>();
-            if (cellId != 0 && !cellIds.contains(cellId)) {
-                cellIds.append(cellId);
-            }
+QList<quint32> cellIdsFromQueryData(const QVariantMap &queryData)
+{
+    QList<quint32> cellIds;
+
+    const QVariantList cellTowers = queryData.value(QLatin1String("cellTowers")).toList();
+    for (const QVariant &ct : cellTowers) {
+        const QVariantMap ctm = ct.toMap();
+        const quint32 cellId = ctm.value(QLatin1String("cellId")).value<quint32>();
+        if (cellId != 0 && !cellIds.contains(cellId)) {
+            cellIds.append(cellId);
         }
-
-        return cellIds;
     }
+
+    return cellIds;
+}
 }
 
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
@@ -72,6 +74,7 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_fallbacksIpf(true)
     , m_wlanDataAllowed(true)
     , m_adaptiveInterval(REQUEST_BASE_ADAPTIVE_INTERVAL)
+    , m_keyFailureTime(KeyFailureTimeKey)
 {
     QString MLSConfigFile = QStringLiteral("/etc/gps_xtra.ini");
     QSettings settings(MLSConfigFile, QSettings::IniFormat);
@@ -226,6 +229,21 @@ bool MlsdbOnlineLocator::findLocation(const QPair<QDateTime, QVariantMap> &query
         return true;
     }
 
+    QString failureTimeString = m_keyFailureTime.value().toString();
+
+    if (!failureTimeString.isEmpty()) {
+        QDateTime failureTime = QDateTime::fromString(failureTimeString, Qt::ISODate);
+        if (failureTime.isValid()) {
+            QDateTime currentTime = QDateTime::currentDateTimeUtc();
+            qint64 diff = failureTime.msecsTo(currentTime);
+
+            if (diff >= 0 && diff < 12*60*60*1000) {
+                qCDebug(lcGeoclueMlsdbOnline) << "Less than 12 hour old key failure, refusing a new try";
+                return false;
+            }
+        }
+    }
+
     QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -251,14 +269,20 @@ void MlsdbOnlineLocator::requestOnlineLocationFinished(QNetworkReply *reply)
     QString errorString;
     if (m_currentReply->property("timedOut").toBool()) {
         emit error(QStringLiteral("manual timeout"));
-    } else if (m_currentReply->error() == QNetworkReply::NoError) {
-        QByteArray data = m_currentReply->readAll();
-        qCDebug(lcGeoclueMlsdbOnline) << "MLS response:" << data;
-        if (!readServerResponseData(data, &errorString)) {
-            emit error(errorString);
-        }
     } else {
-        emit error(m_currentReply->errorString());
+        QByteArray data = m_currentReply->readAll();
+
+        if (m_currentReply->error() == QNetworkReply::NoError) {
+            m_keyFailureTime.unset();
+
+            qCDebug(lcGeoclueMlsdbOnline) << "MLS response:" << data;
+            if (!readServerResponseData(data, &errorString)) {
+                emit error(errorString);
+            }
+        } else {
+            checkError(data);
+            emit error(m_currentReply->errorString());
+        }
     }
     m_currentReply->deleteLater();
     m_currentReply = 0;
@@ -309,6 +333,26 @@ bool MlsdbOnlineLocator::readServerResponseData(const QByteArray &data, QString 
     }
     emit locationFound(latitude, longitude, accuracy);
     return true;
+}
+
+void MlsdbOnlineLocator::checkError(const QByteArray &data)
+{
+    QJsonParseError parseError;
+    QJsonDocument json = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        return;
+    }
+
+    if (!json.isObject()) {
+        return;
+    }
+
+    int errorCode = json.object().value(QLatin1String("error")).toObject().value(QLatin1String("code")).toInt();
+
+    if (errorCode == 400) {
+        qCWarning(lcGeoclueMlsdbOnline) << "Mozilla Location Service failed due to invalid API key, disabling the locator for 12 hours";
+        m_keyFailureTime.set(QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+    }
 }
 
 QVariantMap MlsdbOnlineLocator::globalFields() const
