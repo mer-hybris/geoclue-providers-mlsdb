@@ -4,7 +4,7 @@ Release: 1
 Summary: Geoinformation Service from Mozilla Location Services Database Provider
 Group: System/Libraries
 URL: https://github.com/mer-hybris/geoclue-providers-mlsdb
-License: LGPLv2.1
+License: LGPLv2
 Source0: %{name}-%{version}.tar.gz
 Source1: %{name}.privileges
 BuildRequires: pkgconfig(Qt5Core)
@@ -80,6 +80,7 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 
 %files
 %defattr(-,root,root,-)
+%license COPYING
 %{_libexecdir}/geoclue-mlsdb
 %{_datadir}/mapplauncherd/privileges.d/*
 %dir %{_datadir}/geoclue-provider-mlsdb
