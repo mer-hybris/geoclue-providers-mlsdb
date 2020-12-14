@@ -2,7 +2,6 @@ Name: geoclue-provider-mlsdb
 Version: 0.1.2
 Release: 1
 Summary: Geoinformation Service from Mozilla Location Services Database Provider
-Group: System/Libraries
 URL: https://github.com/mer-hybris/geoclue-providers-mlsdb
 License: LGPLv2
 Source0: %{name}-%{version}.tar.gz
@@ -24,14 +23,12 @@ Requires: %{name}-agreements
 
 %package agreements
 Summary:  Mozilla Location Services privacy policy agreements
-Group:    System/Libraries
 
 %description agreements
 %{summary}.
 
 %package tool
 Summary:   Cell id to location database tool for geoclue-provider-mlsdb
-Group:     System/Application
 Requires:  %{name} = %{version}
 
 %description tool
@@ -39,7 +36,6 @@ Requires:  %{name} = %{version}
 
 %package data-in
 Summary:   Cell id to location data (.in)
-Group:     System/Data
 Requires:  %{name} = %{version}
 
 %description data-in
@@ -48,7 +44,6 @@ Requires:  %{name} = %{version}
 
 %package data-fi
 Summary:   Cell id to location data (.fi)
-Group:     System/Data
 Requires:  %{name} = %{version}
 
 %description data-fi
@@ -57,7 +52,6 @@ Requires:  %{name} = %{version}
 
 %package data-au
 Summary:   Cell id to location data (.au)
-Group:     System/Data
 Requires:  %{name} = %{version}
 
 %description data-au
