@@ -1143,6 +1143,105 @@ QMap<QString, QVector<BoundingBox> > regionBoundingBoxes()
           << cbboxes.value(QLatin1String("India"));
     retn.insert(QLatin1String("Devel"), devel);
 
+    QVector<BoundingBox> easterneurope;
+    easterneurope << cbboxes.value(QLatin1String("Ukraine"))
+          << cbboxes.value(QLatin1String("Poland"))
+          << cbboxes.value(QLatin1String("Romania"))
+          << cbboxes.value(QLatin1String("Czech_Republic"))
+          << cbboxes.value(QLatin1String("Hungary"))
+          << cbboxes.value(QLatin1String("Belarus"))
+          << cbboxes.value(QLatin1String("Bulgaria"))
+          << cbboxes.value(QLatin1String("Slovakia"))
+          << cbboxes.value(QLatin1String("Moldova"));
+    retn.insert(QLatin1String("Eastern_Europe"), easterneurope);
+
+    QVector<BoundingBox> northerneurope;
+    northerneurope << cbboxes.value(QLatin1String("United_Kingdom"))
+          << cbboxes.value(QLatin1String("Sweden"))
+          << cbboxes.value(QLatin1String("Denmark"))
+          << cbboxes.value(QLatin1String("Finland"))
+          << cbboxes.value(QLatin1String("Norway"))
+          << cbboxes.value(QLatin1String("Ireland"))
+          << cbboxes.value(QLatin1String("Lithuania"))
+          << cbboxes.value(QLatin1String("Latvia"))
+          << cbboxes.value(QLatin1String("Estonia"))
+          << cbboxes.value(QLatin1String("Iceland"));
+    retn.insert(QLatin1String("Northern_Europe"), northerneurope);
+
+    QVector<BoundingBox> westerneurope;
+    westerneurope << cbboxes.value(QLatin1String("Germany"))
+          << cbboxes.value(QLatin1String("France"))
+          << cbboxes.value(QLatin1String("Netherlands"))
+          << cbboxes.value(QLatin1String("Belgium"))
+          << cbboxes.value(QLatin1String("Austria"))
+          << cbboxes.value(QLatin1String("Switzerland"))
+          << cbboxes.value(QLatin1String("Luxembourg"))
+          << cbboxes.value(QLatin1String("Monaco"))
+          << cbboxes.value(QLatin1String("Liechtenstein"));
+    retn.insert(QLatin1String("Western_Europe"), westerneurope);
+
+    QVector<BoundingBox> southerneurope;
+    southerneurope << cbboxes.value(QLatin1String("Italy"))
+          << cbboxes.value(QLatin1String("Spain"))
+          << cbboxes.value(QLatin1String("Greece"))
+          << cbboxes.value(QLatin1String("Portugal"))
+          << cbboxes.value(QLatin1String("Serbia"))
+          << cbboxes.value(QLatin1String("Croatia"))
+          << cbboxes.value(QLatin1String("Bosnia_and_Herzegovina"))
+          << cbboxes.value(QLatin1String("Albania"))
+          << cbboxes.value(QLatin1String("Macedonia"))
+          << cbboxes.value(QLatin1String("Slovenia"))
+          << cbboxes.value(QLatin1String("Montenegro"))
+          << cbboxes.value(QLatin1String("Malta"))
+          << cbboxes.value(QLatin1String("Andorra"))
+          << cbboxes.value(QLatin1String("San_Marino"));
+    retn.insert(QLatin1String("Southern_Europe"), southerneurope);
+
+    QVector<BoundingBox> europe;
+    europe << cbboxes.value(QLatin1String("Ukraine"))
+          << cbboxes.value(QLatin1String("Poland"))
+          << cbboxes.value(QLatin1String("Romania"))
+          << cbboxes.value(QLatin1String("Czech_Republic"))
+          << cbboxes.value(QLatin1String("Hungary"))
+          << cbboxes.value(QLatin1String("Belarus"))
+          << cbboxes.value(QLatin1String("Bulgaria"))
+          << cbboxes.value(QLatin1String("Slovakia"))
+          << cbboxes.value(QLatin1String("Moldova"))
+          << cbboxes.value(QLatin1String("United_Kingdom"))
+          << cbboxes.value(QLatin1String("Sweden"))
+          << cbboxes.value(QLatin1String("Denmark"))
+          << cbboxes.value(QLatin1String("Finland"))
+          << cbboxes.value(QLatin1String("Norway"))
+          << cbboxes.value(QLatin1String("Ireland"))
+          << cbboxes.value(QLatin1String("Lithuania"))
+          << cbboxes.value(QLatin1String("Latvia"))
+          << cbboxes.value(QLatin1String("Estonia"))
+          << cbboxes.value(QLatin1String("Iceland"))
+          << cbboxes.value(QLatin1String("Germany"))
+          << cbboxes.value(QLatin1String("France"))
+          << cbboxes.value(QLatin1String("Netherlands"))
+          << cbboxes.value(QLatin1String("Belgium"))
+          << cbboxes.value(QLatin1String("Austria"))
+          << cbboxes.value(QLatin1String("Switzerland"))
+          << cbboxes.value(QLatin1String("Luxembourg"))
+          << cbboxes.value(QLatin1String("Monaco"))
+          << cbboxes.value(QLatin1String("Liechtenstein"))
+          << cbboxes.value(QLatin1String("Italy"))
+          << cbboxes.value(QLatin1String("Spain"))
+          << cbboxes.value(QLatin1String("Greece"))
+          << cbboxes.value(QLatin1String("Portugal"))
+          << cbboxes.value(QLatin1String("Serbia"))
+          << cbboxes.value(QLatin1String("Croatia"))
+          << cbboxes.value(QLatin1String("Bosnia_and_Herzegovina"))
+          << cbboxes.value(QLatin1String("Albania"))
+          << cbboxes.value(QLatin1String("Macedonia"))
+          << cbboxes.value(QLatin1String("Slovenia"))
+          << cbboxes.value(QLatin1String("Montenegro"))
+          << cbboxes.value(QLatin1String("Malta"))
+          << cbboxes.value(QLatin1String("Andorra"))
+          << cbboxes.value(QLatin1String("San_Marino"));
+    retn.insert(QLatin1String("Europe"), europe);
+
     return retn;
 }
 
@@ -1433,8 +1532,18 @@ void printRegionHelp()
                     " file `mlsdb.data` which contains a mapping from (uint32) cell id"
                     " to (double,double) latitude,longitude for all cells known"
                     " in the mls.csv within the bounding-box for that region.\n"
-                    "One special region is the `Devel` region which contains just"
-                    " Finland, Australia and India.\n");
+                    "A few special regions are added:\n"
+                    " - `Devel` contains: Finland, Australia and India"
+                    " - `Eastern_Europe` contains: Ukraine, Poland, Romania, Czech Republic, Hungary,"
+                    " Belarus, Bulgaria, Slovakia and Moldova\n"
+                    " - `Northern_Europe` contains: United_Kingdom, Sweden, Denmark, Finland, Norway,"
+                    " Ireland, Lithuania, Latvia, Estonia and Iceland\n"
+                    " - `Western_Europe` contains: Germany, France, Netherlands, Belgium, Austria,"
+                    " Switzerland, Luxembourg, Monaco and Liechtenstein\n"
+                    " - `Southern_Europe` contains: Italy, Spain, Greece, Portugal, Serbia,"
+                    " Croatia, Bosnia_and_Herzegovina, Albania, Macedonia, Slovenia, Montenegro,"
+                    " Malta, Andorra and San_Marino (not including Holy See (Vatican))\n"
+                    " - `Europe` contains: Eastern-, Northern-, Western- and Southern Europe\n");
     fprintf(stdout, "Valid regions are:\n");
     const QMap<QString, QVector<BoundingBox> > rbb(regionBoundingBoxes());
     Q_FOREACH (const QString &r, rbb.keys()) {
