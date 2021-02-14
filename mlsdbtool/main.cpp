@@ -1164,8 +1164,8 @@ QMap<QString, QVector<BoundingBox> > regionBoundingBoxes()
           << cbboxes.value(QLatin1String("Latvia"))
           << cbboxes.value(QLatin1String("Lithuania"))
           << cbboxes.value(QLatin1String("Norway"))
-          << cbboxes.value(QLatin1String("United_Kingdom"))
-          << cbboxes.value(QLatin1String("Sweden"));
+          << cbboxes.value(QLatin1String("Sweden"))
+          << cbboxes.value(QLatin1String("United_Kingdom"));
     retn.insert(QLatin1String("Northern_Europe"), northerneurope);
 
     QVector<BoundingBox> westerneurope;
