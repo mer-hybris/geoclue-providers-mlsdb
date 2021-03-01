@@ -1171,16 +1171,16 @@ ParseLineResult parseLineAndTest(const QByteArray &line, const QVector<BoundingB
         cellType = MLSDB_CELL_TYPE_OTHER;
     }
     // parse mcc and mnc fields
-    quint16 mcc = QString::fromLatin1(fields[1]).isEmpty() ? 0 : QString::fromLatin1(fields[1]).toUInt();
-    quint16 mnc = QString::fromLatin1(fields[2]).isEmpty() ? 0 : QString::fromLatin1(fields[2]).toUInt();
+    quint16 mcc = fields[1].isEmpty() ? 0 : fields[1].toUInt();
+    quint16 mnc = fields[2].isEmpty() ? 0 : fields[2].toUInt();
     // check to see that there is a cellId associated.  not the case for some UMTS cells.
-    quint32 cellId = QString::fromLatin1(fields[4]).isEmpty() ? 0 : QString::fromLatin1(fields[4]).toUInt();
-    quint32 locationCode = QString::fromLatin1(fields[3]).isEmpty() ? 0 : QString::fromLatin1(fields[3]).toUInt();
+    quint32 cellId = fields[4].isEmpty() ? 0 : fields[4].toUInt();
+    quint32 locationCode = fields[3].isEmpty() ? 0 : fields[3].toUInt();
     if (cellId > 0) {
         // build the cell location.
         result.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
-        result.loc.lat = QString::fromLatin1(fields[7]).toDouble();
-        result.loc.lon = QString::fromLatin1(fields[6]).toDouble();
+        result.loc.lat = fields[7].toDouble();
+        result.loc.lon = fields[6].toDouble();
         // check to see if it's within our bounding boxes
         Q_FOREACH (const BoundingBox &bbox, boundingBoxes) {
             if (bbox.contains(result.loc)) {
