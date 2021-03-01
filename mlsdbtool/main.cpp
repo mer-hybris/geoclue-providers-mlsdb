@@ -40,8 +40,8 @@
 
 struct BoundingBox {
     // usually zero, except in cases where the country crosses meridian or pole
-    double latShift;
-    double lonShift;
+    double latShift = 0.0;
+    double lonShift = 0.0;
 
     // bounding box lower-left/upper-right corners
     // note that these are post-shift values!
@@ -80,8 +80,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
 // Africa
 
     BoundingBox algeria_bb;
-    algeria_bb.latShift = 0.0;
-    algeria_bb.lonShift = 0.0;
     algeria_bb.lowerLeft.lat = 19.057;
     algeria_bb.lowerLeft.lon = -8.684;
     algeria_bb.upperRight.lat = 37.118;
@@ -89,8 +87,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Algeria"), algeria_bb);
 
     BoundingBox angola_bb;
-    angola_bb.latShift = 0.0;
-    angola_bb.lonShift = 0.0;
     angola_bb.lowerLeft.lat = -17.931;
     angola_bb.lowerLeft.lon = 11.6400;
     angola_bb.upperRight.lat = -4.438;
@@ -98,8 +94,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Angola"), angola_bb);
 
     BoundingBox benin_bb;
-    benin_bb.latShift = 0.0;
-    benin_bb.lonShift = 0.0;
     benin_bb.lowerLeft.lat = 6.142;
     benin_bb.lowerLeft.lon = 0.772;
     benin_bb.upperRight.lat = 12.236;
@@ -107,8 +101,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Benin"), benin_bb);
 
     BoundingBox botswana_bb;
-    botswana_bb.latShift = 0.0;
-    botswana_bb.lonShift = 0.0;
     botswana_bb.lowerLeft.lat = -26.828;
     botswana_bb.lowerLeft.lon = 19.895;
     botswana_bb.upperRight.lat = -17.661;
@@ -116,8 +108,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Botswana"), botswana_bb);
 
     BoundingBox burkina_faso_bb;
-    burkina_faso_bb.latShift = 0.0;
-    burkina_faso_bb.lonShift = 0.0;
     burkina_faso_bb.lowerLeft.lat = 9.611;
     burkina_faso_bb.lowerLeft.lon = -5.471;
     burkina_faso_bb.upperRight.lat = 15.116;
@@ -125,8 +115,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Burkina_Faso"), burkina_faso_bb);
 
     BoundingBox burundi_bb;
-    burundi_bb.latShift = 0.0;
-    burundi_bb.lonShift = 0.0;
     burundi_bb.lowerLeft.lat = -4.499;
     burundi_bb.lowerLeft.lon = 29.025;
     burundi_bb.upperRight.lat = -2.348;
@@ -134,8 +122,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Burundi"), burundi_bb);
 
     BoundingBox cameroon_bb;
-    cameroon_bb.latShift = 0.0;
-    cameroon_bb.lonShift = 0.0;
     cameroon_bb.lowerLeft.lat = 1.728;
     cameroon_bb.lowerLeft.lon = 8.488;
     cameroon_bb.upperRight.lat = 12.859;
@@ -143,8 +129,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Cameroon"), cameroon_bb);
 
     BoundingBox canary_islands_bb;
-    canary_islands_bb.latShift = 0.0;
-    canary_islands_bb.lonShift = 0.0;
     canary_islands_bb.lowerLeft.lat = 27.637;
     canary_islands_bb.lowerLeft.lon = -18.161;
     canary_islands_bb.upperRight.lat = 29.415;
@@ -152,8 +136,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Canary_Islands"), canary_islands_bb);
 
     BoundingBox cape_verde_bb;
-    cape_verde_bb.latShift = 0.0;
-    cape_verde_bb.lonShift = 0.0;
     cape_verde_bb.lowerLeft.lat = 14.802;
     cape_verde_bb.lowerLeft.lon = -25.359;
     cape_verde_bb.upperRight.lat = 17.197;
@@ -161,8 +143,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Cape_Verde"), cape_verde_bb);
 
     BoundingBox central_african_republic_bb;
-    central_african_republic_bb.latShift = 0.0;
-    central_african_republic_bb.lonShift = 0.0;
     central_african_republic_bb.lowerLeft.lat = 2.267;
     central_african_republic_bb.lowerLeft.lon = 14.459;
     central_african_republic_bb.upperRight.lat = 11.142;
@@ -170,8 +150,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Central_African_Republic"), central_african_republic_bb);
 
     BoundingBox ceuta_bb;
-    ceuta_bb.latShift = 0.0;
-    ceuta_bb.lonShift = 0.0;
     ceuta_bb.lowerLeft.lat = 35.871;
     ceuta_bb.lowerLeft.lon = -5.353;
     ceuta_bb.upperRight.lat = 35.907;
@@ -179,8 +157,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ceuta"), ceuta_bb);
 
     BoundingBox chad_bb;
-    chad_bb.latShift = 0.0;
-    chad_bb.lonShift = 0.0;
     chad_bb.lowerLeft.lat = 7.422;
     chad_bb.lowerLeft.lon = 13.540;
     chad_bb.upperRight.lat = 23.410;
@@ -188,8 +164,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Chad"), chad_bb);
 
     BoundingBox comoros_bb;
-    comoros_bb.latShift = 0.0;
-    comoros_bb.lonShift = 0.0;
     comoros_bb.lowerLeft.lat = -12.414;
     comoros_bb.lowerLeft.lon = 43.216;
     comoros_bb.upperRight.lat = -11.362;
@@ -197,8 +171,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Comoros"), comoros_bb);
 
     BoundingBox congo_bb;
-    congo_bb.latShift = 0.0;
-    congo_bb.lonShift = 0.0;
     congo_bb.lowerLeft.lat = -5.038;
     congo_bb.lowerLeft.lon = 11.093;
     congo_bb.upperRight.lat = 3.728;
@@ -206,8 +178,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Congo"), congo_bb);
 
     BoundingBox democratic_republic_of_the_congo_bb;
-    democratic_republic_of_the_congo_bb.latShift = 0.0;
-    democratic_republic_of_the_congo_bb.lonShift = 0.0;
     democratic_republic_of_the_congo_bb.lowerLeft.lat = -13.257;
     democratic_republic_of_the_congo_bb.lowerLeft.lon = 12.182;
     democratic_republic_of_the_congo_bb.upperRight.lat = 5.256;
@@ -215,8 +185,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Democratic_Republic_of_the_Congo"), democratic_republic_of_the_congo_bb);
 
     BoundingBox djibouti_bb;
-    djibouti_bb.latShift = 0.0;
-    djibouti_bb.lonShift = 0.0;
     djibouti_bb.lowerLeft.lat = 10.926;
     djibouti_bb.lowerLeft.lon = 41.662;
     djibouti_bb.upperRight.lat = 12.699;
@@ -224,8 +192,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Djibouti"), djibouti_bb);
 
     BoundingBox egypt_bb;
-    egypt_bb.latShift = 0.0;
-    egypt_bb.lonShift = 0.0;
     egypt_bb.lowerLeft.lat = 22.0;
     egypt_bb.lowerLeft.lon = 24.700;
     egypt_bb.upperRight.lat = 31.586;
@@ -233,8 +199,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Egypt"), egypt_bb);
 
     BoundingBox equatorial_guinea_bb;
-    equatorial_guinea_bb.latShift = 0.0;
-    equatorial_guinea_bb.lonShift = 0.0;
     equatorial_guinea_bb.lowerLeft.lat = 1.010;
     equatorial_guinea_bb.lowerLeft.lon = 9.306;
     equatorial_guinea_bb.upperRight.lat = 2.284;
@@ -242,8 +206,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Equatorial_Guinea"), equatorial_guinea_bb);
 
     BoundingBox eritrea_bb;
-    eritrea_bb.latShift = 0.0;
-    eritrea_bb.lonShift = 0.0;
     eritrea_bb.lowerLeft.lat = 12.455;
     eritrea_bb.lowerLeft.lon = 36.323;
     eritrea_bb.upperRight.lat = 17.998;
@@ -251,8 +213,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Eritrea"), eritrea_bb);
 
     BoundingBox ethiopia_bb;
-    ethiopia_bb.latShift = 0.0;
-    ethiopia_bb.lonShift = 0.0;
     ethiopia_bb.lowerLeft.lat = 3.422;
     ethiopia_bb.lowerLeft.lon = 32.954;
     ethiopia_bb.upperRight.lat = 14.959;
@@ -260,8 +220,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ethiopia"), ethiopia_bb);
 
     BoundingBox gabon_bb;
-    gabon_bb.latShift = 0.0;
-    gabon_bb.lonShift = 0.0;
     gabon_bb.lowerLeft.lat = -3.978;
     gabon_bb.lowerLeft.lon = 8.798;
     gabon_bb.upperRight.lat = 2.327;
@@ -269,8 +227,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Gabon"), gabon_bb);
 
     BoundingBox gambia_bb;
-    gambia_bb.latShift = 0.0;
-    gambia_bb.lonShift = 0.0;
     gambia_bb.lowerLeft.lat = 13.130;
     gambia_bb.lowerLeft.lon = -16.841;
     gambia_bb.upperRight.lat = 13.876;
@@ -278,8 +234,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Gambia"), gambia_bb);
 
     BoundingBox ghana_bb;
-    ghana_bb.latShift = 0.0;
-    ghana_bb.lonShift = 0.0;
     ghana_bb.lowerLeft.lat = 4.710;
     ghana_bb.lowerLeft.lon = -3.244;
     ghana_bb.upperRight.lat = 11.098;
@@ -287,8 +241,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ghana"), ghana_bb);
 
     BoundingBox guinea_bb;
-    guinea_bb.latShift = 0.0;
-    guinea_bb.lonShift = 0.0;
     guinea_bb.lowerLeft.lat = 7.309;
     guinea_bb.lowerLeft.lon = -15.130;
     guinea_bb.upperRight.lat = 12.586;
@@ -296,8 +248,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Guinea"), guinea_bb);
 
     BoundingBox guinea_bissau_bb;
-    guinea_bissau_bb.latShift = 0.0;
-    guinea_bissau_bb.lonShift = 0.0;
     guinea_bissau_bb.lowerLeft.lat = 11.040;
     guinea_bissau_bb.lowerLeft.lon = -16.677;
     guinea_bissau_bb.upperRight.lat = 12.628;
@@ -305,8 +255,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Guinea_Bissau"), guinea_bissau_bb);
 
     BoundingBox ivory_coast_bb;
-    ivory_coast_bb.latShift = 0.0;
-    ivory_coast_bb.lonShift = 0.0;
     ivory_coast_bb.lowerLeft.lat = 4.338;
     ivory_coast_bb.lowerLeft.lon = -8.602;
     ivory_coast_bb.upperRight.lat = 10.524;
@@ -314,8 +262,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ivory_Coast"), ivory_coast_bb);
 
     BoundingBox kenya_bb;
-    kenya_bb.latShift = 0.0;
-    kenya_bb.lonShift = 0.0;
     kenya_bb.lowerLeft.lat = -4.676;
     kenya_bb.lowerLeft.lon = 33.893;
     kenya_bb.upperRight.lat = 5.506;
@@ -323,8 +269,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Kenya"), kenya_bb);
 
     BoundingBox lesotho_bb;
-    lesotho_bb.latShift = 0.0;
-    lesotho_bb.lonShift = 0.0;
     lesotho_bb.lowerLeft.lat = -30.645;
     lesotho_bb.lowerLeft.lon = 26.999;
     lesotho_bb.upperRight.lat = -28.648;
@@ -332,8 +276,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Lesotho"), lesotho_bb);
 
     BoundingBox liberia_bb;
-    liberia_bb.latShift = 0.0;
-    liberia_bb.lonShift = 0.0;
     liberia_bb.lowerLeft.lat = 4.356;
     liberia_bb.lowerLeft.lon = -11.439;
     liberia_bb.upperRight.lat = 8.541;
@@ -341,8 +283,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Liberia"), liberia_bb);
 
     BoundingBox libya_bb;
-    libya_bb.latShift = 0.0;
-    libya_bb.lonShift = 0.0;
     libya_bb.lowerLeft.lat = 19.580;
     libya_bb.lowerLeft.lon = 9.319;
     libya_bb.upperRight.lat = 33.137;
@@ -350,8 +290,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Libya"), libya_bb);
 
     BoundingBox madagascar_bb;
-    madagascar_bb.latShift = 0.0;
-    madagascar_bb.lonShift = 0.0;
     madagascar_bb.lowerLeft.lat = -25.601;
     madagascar_bb.lowerLeft.lon = 43.254;
     madagascar_bb.upperRight.lat = -12.041;
@@ -359,8 +297,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Madagascar"), madagascar_bb);
 
     BoundingBox madeira_bb;
-    madeira_bb.latShift = 0.0;
-    madeira_bb.lonShift = 0.0;
     madeira_bb.lowerLeft.lat = 30.028;
     madeira_bb.lowerLeft.lon = -17.266;
     madeira_bb.upperRight.lat = 33.117;
@@ -368,8 +304,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Madeira"), madeira_bb);
 
     BoundingBox malawi_bb;
-    malawi_bb.latShift = 0.0;
-    malawi_bb.lonShift = 0.0;
     malawi_bb.lowerLeft.lat = -16.801;
     malawi_bb.lowerLeft.lon = 32.688;
     malawi_bb.upperRight.lat = -9.231;
@@ -377,8 +311,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Malawi"), malawi_bb);
 
     BoundingBox mali_bb;
-    mali_bb.latShift = 0.0;
-    mali_bb.lonShift = 0.0;
     mali_bb.lowerLeft.lat = 10.096;
     mali_bb.lowerLeft.lon = -12.170;
     mali_bb.upperRight.lat = 24.975;
@@ -386,8 +318,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Mali"), mali_bb);
 
     BoundingBox mauritania_bb;
-    mauritania_bb.latShift = 0.0;
-    mauritania_bb.lonShift = 0.0;
     mauritania_bb.lowerLeft.lat = 14.617;
     mauritania_bb.lowerLeft.lon = -17.063;
     mauritania_bb.upperRight.lat = 27.396;
@@ -395,8 +325,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Mauritania"), mauritania_bb);
 
     BoundingBox mauritius_bb;
-    mauritius_bb.latShift = 0.0;
-    mauritius_bb.lonShift = 0.0;
     mauritius_bb.lowerLeft.lat = -20.526;
     mauritius_bb.lowerLeft.lon = 56.513;
     mauritius_bb.upperRight.lat = -10.319;
@@ -404,8 +332,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Mauritius"), mauritius_bb);
 
     BoundingBox mayotte_bb;
-    mayotte_bb.latShift = 0.0;
-    mayotte_bb.lonShift = 0.0;
     mayotte_bb.lowerLeft.lat = -13.000;
     mayotte_bb.lowerLeft.lon = 45.014;
     mayotte_bb.upperRight.lat = -12.633;
@@ -413,8 +339,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Mayotte"), mayotte_bb);
 
     BoundingBox melilla_bb;
-    melilla_bb.latShift = 0.0;
-    melilla_bb.lonShift = 0.0;
     melilla_bb.lowerLeft.lat = 35.269;
     melilla_bb.lowerLeft.lon = -2.963;
     melilla_bb.upperRight.lat = 35.307;
@@ -422,8 +346,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Melilla"), melilla_bb);
 
     BoundingBox morocco_bb;
-    morocco_bb.latShift = 0.0;
-    morocco_bb.lonShift = 0.0;
     morocco_bb.lowerLeft.lat = 21.421;
     morocco_bb.lowerLeft.lon = -17.020;
     morocco_bb.upperRight.lat = 35.760;
@@ -431,8 +353,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Morocco"), morocco_bb);
 
     BoundingBox mozambique_bb;
-    mozambique_bb.latShift = 0.0;
-    mozambique_bb.lonShift = 0.0;
     mozambique_bb.lowerLeft.lat = -26.742;
     mozambique_bb.lowerLeft.lon = 30.179;
     mozambique_bb.upperRight.lat = -10.317;
@@ -440,8 +360,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Mozambique"), mozambique_bb);
 
     BoundingBox namibia_bb;
-    namibia_bb.latShift = 0.0;
-    namibia_bb.lonShift = 0.0;
     namibia_bb.lowerLeft.lat = -29.045;
     namibia_bb.lowerLeft.lon = 11.734;
     namibia_bb.upperRight.lat = -16.941;
@@ -449,8 +367,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Namibia"), namibia_bb);
 
     BoundingBox niger_bb;
-    niger_bb.latShift = 0.0;
-    niger_bb.lonShift = 0.0;
     niger_bb.lowerLeft.lat = 11.660;
     niger_bb.lowerLeft.lon = 0.296;
     niger_bb.upperRight.lat = 23.472;
@@ -458,8 +374,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Niger"), niger_bb);
 
     BoundingBox nigeria_bb;
-    nigeria_bb.latShift = 0.0;
-    nigeria_bb.lonShift = 0.0;
     nigeria_bb.lowerLeft.lat = 4.240;
     nigeria_bb.lowerLeft.lon = 2.691;
     nigeria_bb.upperRight.lat = 13.866;
@@ -467,8 +381,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Nigeria"), nigeria_bb);
 
     BoundingBox reunion_bb;
-    reunion_bb.latShift = 0.0;
-    reunion_bb.lonShift = 0.0;
     reunion_bb.lowerLeft.lat = -21.372;
     reunion_bb.lowerLeft.lon = 55.219;
     reunion_bb.upperRight.lat = -20.856;
@@ -476,8 +388,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Reunion"), reunion_bb);
 
     BoundingBox rwanda_bb;
-    rwanda_bb.latShift = 0.0;
-    rwanda_bb.lonShift = 0.0;
     rwanda_bb.lowerLeft.lat = -2.918;
     rwanda_bb.lowerLeft.lon = 29.024;
     rwanda_bb.upperRight.lat = -1.137;
@@ -485,8 +395,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Rwanda"), rwanda_bb);
 
     BoundingBox sao_tome_and_principe_bb;
-    sao_tome_and_principe_bb.latShift = 0.0;
-    sao_tome_and_principe_bb.lonShift = 0.0;
     sao_tome_and_principe_bb.lowerLeft.lat = -0.014;
     sao_tome_and_principe_bb.lowerLeft.lon = 5.599;
     sao_tome_and_principe_bb.upperRight.lat = 1.734;
@@ -494,8 +402,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Sao_Tome_and_Principe"), sao_tome_and_principe_bb);
 
     BoundingBox senegal_bb;
-    senegal_bb.latShift = 0.0;
-    senegal_bb.lonShift = 0.0;
     senegal_bb.lowerLeft.lat = 12.332;
     senegal_bb.lowerLeft.lon = -17.625;
     senegal_bb.upperRight.lat = 16.598;
@@ -503,8 +409,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Senegal"), senegal_bb);
 
     BoundingBox seychelles_bb;
-    seychelles_bb.latShift = 0.0;
-    seychelles_bb.lonShift = 0.0;
     seychelles_bb.lowerLeft.lat = -10.217;
     seychelles_bb.lowerLeft.lon = 46.199;
     seychelles_bb.upperRight.lat = -3.711;
@@ -512,8 +416,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Seychelles"), seychelles_bb);
 
     BoundingBox sierra_leone_bb;
-    sierra_leone_bb.latShift = 0.0;
-    sierra_leone_bb.lonShift = 0.0;
     sierra_leone_bb.lowerLeft.lat = 6.785;
     sierra_leone_bb.lowerLeft.lon = -13.247;
     sierra_leone_bb.upperRight.lat = 10.047;
@@ -521,8 +423,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Sierra_Leone"), sierra_leone_bb);
 
     BoundingBox somalia_bb;
-    somalia_bb.latShift = 0.0;
-    somalia_bb.lonShift = 0.0;
     somalia_bb.lowerLeft.lat = -1.683;
     somalia_bb.lowerLeft.lon = 40.981;
     somalia_bb.upperRight.lat = 12.025;
@@ -530,8 +430,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Somalia"), somalia_bb);
 
     BoundingBox south_africa_bb;
-    south_africa_bb.latShift = 0.0;
-    south_africa_bb.lonShift = 0.0;
     south_africa_bb.lowerLeft.lat = -34.819;
     south_africa_bb.lowerLeft.lon = 16.345;
     south_africa_bb.upperRight.lat = -22.091;
@@ -539,8 +437,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("South_Africa"), south_africa_bb);
 
     BoundingBox south_sudan_bb;
-    south_sudan_bb.latShift = 0.0;
-    south_sudan_bb.lonShift = 0.0;
     south_sudan_bb.lowerLeft.lat = 3.509;
     south_sudan_bb.lowerLeft.lon = 23.887;
     south_sudan_bb.upperRight.lat = 12.248;
@@ -548,8 +444,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("South_Sudan"), south_sudan_bb);
 
     BoundingBox sudan_bb;
-    sudan_bb.latShift = 0.0;
-    sudan_bb.lonShift = 0.0;
     sudan_bb.lowerLeft.lat = 8.620;
     sudan_bb.lowerLeft.lon = 21.937;
     sudan_bb.upperRight.lat = 22.0;
@@ -557,8 +451,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Sudan"), sudan_bb);
 
     BoundingBox swaziland_bb;
-    swaziland_bb.latShift = 0.0;
-    swaziland_bb.lonShift = 0.0;
     swaziland_bb.lowerLeft.lat = -27.286;
     swaziland_bb.lowerLeft.lon = 30.676;
     swaziland_bb.upperRight.lat = -25.660;
@@ -566,8 +458,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Swaziland"), swaziland_bb);
 
     BoundingBox tanzania_bb;
-    tanzania_bb.latShift = 0.0;
-    tanzania_bb.lonShift = 0.0;
     tanzania_bb.lowerLeft.lat = -11.720;
     tanzania_bb.lowerLeft.lon = 29.340;
     tanzania_bb.upperRight.lat = -0.95;
@@ -575,8 +465,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Tanzania"), tanzania_bb);
 
     BoundingBox togo_bb;
-    togo_bb.latShift = 0.0;
-    togo_bb.lonShift = 0.0;
     togo_bb.lowerLeft.lat = 5.929;
     togo_bb.lowerLeft.lon = -0.049;
     togo_bb.upperRight.lat = 11.018;
@@ -584,8 +472,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Togo"), togo_bb);
 
     BoundingBox tunisia_bb;
-    tunisia_bb.latShift = 0.0;
-    tunisia_bb.lonShift = 0.0;
     tunisia_bb.lowerLeft.lat = 30.307;
     tunisia_bb.lowerLeft.lon = 7.524;
     tunisia_bb.upperRight.lat = 37.350;
@@ -593,8 +479,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Tunisia"), tunisia_bb);
 
     BoundingBox uganda_bb;
-    uganda_bb.latShift = 0.0;
-    uganda_bb.lonShift = 0.0;
     uganda_bb.lowerLeft.lat = -1.443;
     uganda_bb.lowerLeft.lon = 29.579;
     uganda_bb.upperRight.lat = 4.249;
@@ -602,8 +486,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Uganda"), uganda_bb);
 
     BoundingBox zambia_bb;
-    zambia_bb.latShift = 0.0;
-    zambia_bb.lonShift = 0.0;
     zambia_bb.lowerLeft.lat = -17.961;
     zambia_bb.lowerLeft.lon = 21.888;
     zambia_bb.upperRight.lat = -8.238;
@@ -611,8 +493,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Zambia"), zambia_bb);
 
     BoundingBox zimbabwe_bb;
-    zimbabwe_bb.latShift = 0.0;
-    zimbabwe_bb.lonShift = 0.0;
     zimbabwe_bb.lowerLeft.lat = -22.271;
     zimbabwe_bb.lowerLeft.lon = 25.264;
     zimbabwe_bb.upperRight.lat = -15.508;
@@ -622,8 +502,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
 // Europe
 
     BoundingBox aland_islands_bb;
-    aland_islands_bb.latShift = 0.0;
-    aland_islands_bb.lonShift = 0.0;
     aland_islands_bb.lowerLeft.lat = 59.736;
     aland_islands_bb.lowerLeft.lon = 19.263;
     aland_islands_bb.upperRight.lat = 60.666;
@@ -631,8 +509,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Aland_Islands"), aland_islands_bb);
 
     BoundingBox albania_bb;
-    albania_bb.latShift = 0.0;
-    albania_bb.lonShift = 0.0;
     albania_bb.lowerLeft.lat = 39.625;
     albania_bb.lowerLeft.lon = 19.304;
     albania_bb.upperRight.lat = 42.688;
@@ -640,8 +516,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Albania"), albania_bb);
 
     BoundingBox andorra_bb;
-    andorra_bb.latShift = 0.0;
-    andorra_bb.lonShift = 0.0;
     andorra_bb.lowerLeft.lat = 39.644;
     andorra_bb.lowerLeft.lon = 1.414;
     andorra_bb.upperRight.lat = 41.248;
@@ -649,8 +523,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Andorra"), andorra_bb);
 
     BoundingBox armenia_bb;
-    armenia_bb.latShift = 0.0;
-    armenia_bb.lonShift = 0.0;
     armenia_bb.lowerLeft.lat = 38.741;
     armenia_bb.lowerLeft.lon = 43.583;
     armenia_bb.upperRight.lat = 41.248;
@@ -658,8 +530,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Armenia"), armenia_bb);
 
     BoundingBox austria_bb;
-    austria_bb.latShift = 0.0;
-    austria_bb.lonShift = 0.0;
     austria_bb.lowerLeft.lat = 46.432;
     austria_bb.lowerLeft.lon = 9.480;
     austria_bb.upperRight.lat = 49.039;
@@ -667,8 +537,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Austria"), austria_bb);
 
     BoundingBox azerbaijan_bb;
-    azerbaijan_bb.latShift = 0.0;
-    azerbaijan_bb.lonShift = 0.0;
     azerbaijan_bb.lowerLeft.lat = 38.2704;
     azerbaijan_bb.lowerLeft.lon = 44.794;
     azerbaijan_bb.upperRight.lat = 41.861;
@@ -676,8 +544,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Azerbaijan"), azerbaijan_bb);
 
     BoundingBox belarus_bb;
-    belarus_bb.latShift = 0.0;
-    belarus_bb.lonShift = 0.0;
     belarus_bb.lowerLeft.lat = 51.320;
     belarus_bb.lowerLeft.lon = 23.199;
     belarus_bb.upperRight.lat = 56.1691;
@@ -685,8 +551,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Belarus"), belarus_bb);
 
     BoundingBox belgium_bb;
-    belgium_bb.latShift = 0.0;
-    belgium_bb.lonShift = 0.0;
     belgium_bb.lowerLeft.lat = 49.529;
     belgium_bb.lowerLeft.lon = 2.514;
     belgium_bb.upperRight.lat = 51.475;
@@ -694,8 +558,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Belgium"), belgium_bb);
 
     BoundingBox bosnia_and_herzegovina_bb;
-    bosnia_and_herzegovina_bb.latShift = 0.0;
-    bosnia_and_herzegovina_bb.lonShift = 0.0;
     bosnia_and_herzegovina_bb.lowerLeft.lat = 42.650;
     bosnia_and_herzegovina_bb.lowerLeft.lon = 15.750;
     bosnia_and_herzegovina_bb.upperRight.lat = 45.234;
@@ -703,8 +565,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Bosnia_and_Herzegovina"), bosnia_and_herzegovina_bb);
 
     BoundingBox bulgaria_bb;
-    bulgaria_bb.latShift = 0.0;
-    bulgaria_bb.lonShift = 0.0;
     bulgaria_bb.lowerLeft.lat = 41.234;
     bulgaria_bb.lowerLeft.lon = 22.381;
     bulgaria_bb.upperRight.lat = 44.235;
@@ -712,8 +572,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Bulgaria"), bulgaria_bb);
 
     BoundingBox croatia_bb;
-    croatia_bb.latShift = 0.0;
-    croatia_bb.lonShift = 0.0;
     croatia_bb.lowerLeft.lat = 42.490;
     croatia_bb.lowerLeft.lon = 13.657;
     croatia_bb.upperRight.lat = 46.504;
@@ -721,8 +579,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Croatia"), croatia_bb);
 
     BoundingBox cyprus_bb;
-    cyprus_bb.latShift = 0.0;
-    cyprus_bb.lonShift = 0.0;
     cyprus_bb.lowerLeft.lat = 34.572;
     cyprus_bb.lowerLeft.lon = 32.257;
     cyprus_bb.upperRight.lat = 35.173;
@@ -730,8 +586,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Cyprus"), cyprus_bb);
 
     BoundingBox czech_republic_bb;
-    czech_republic_bb.latShift = 0.0;
-    czech_republic_bb.lonShift = 0.0;
     czech_republic_bb.lowerLeft.lat = 48.555;
     czech_republic_bb.lowerLeft.lon = 12.240;
     czech_republic_bb.upperRight.lat = 51.117;
@@ -739,8 +593,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Czech_Republic"), czech_republic_bb);
 
     BoundingBox denmark_bb;
-    denmark_bb.latShift = 0.0;
-    denmark_bb.lonShift = 0.0;
     denmark_bb.lowerLeft.lat = 54.800;
     denmark_bb.lowerLeft.lon = 8.090;
     denmark_bb.upperRight.lat = 57.7300;
@@ -748,8 +600,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Denmark"), denmark_bb);
 
     BoundingBox estonia_bb;
-    estonia_bb.latShift = 0.0;
-    estonia_bb.lonShift = 0.0;
     estonia_bb.lowerLeft.lat = 57.475;
     estonia_bb.lowerLeft.lon = 23.340;
     estonia_bb.upperRight.lat = 59.611;
@@ -757,8 +607,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Estonia"), estonia_bb);
 
     BoundingBox faroe_islands_bb;
-    faroe_islands_bb.latShift = 0.0;
-    faroe_islands_bb.lonShift = 0.0;
     faroe_islands_bb.lowerLeft.lat = 61.395;
     faroe_islands_bb.lowerLeft.lon = -7.681;
     faroe_islands_bb.upperRight.lat = 62.401;
@@ -766,8 +614,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Faroe_Islands"), faroe_islands_bb);
 
     BoundingBox finland_bb;
-    finland_bb.latShift = 0.0;
-    finland_bb.lonShift = 0.0;
     finland_bb.lowerLeft.lat = 59.45;
     finland_bb.lowerLeft.lon = 18.0;
     finland_bb.upperRight.lat = 70.083;
@@ -775,8 +621,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Finland"), finland_bb);
 
     BoundingBox france_bb;
-    france_bb.latShift = 0.0;
-    france_bb.lonShift = 0.0;
     france_bb.lowerLeft.lat = 2.0534;
     france_bb.lowerLeft.lon = -54.5248;
     france_bb.upperRight.lat = 51.149;
@@ -784,8 +628,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("France"), france_bb);
 
     BoundingBox georgia_bb;
-    georgia_bb.latShift = 0.0;
-    georgia_bb.lonShift = 0.0;
     georgia_bb.lowerLeft.lat = 41.064;
     georgia_bb.lowerLeft.lon = 39.955;
     georgia_bb.upperRight.lat = 43.553;
@@ -793,8 +635,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Georgia"), georgia_bb);
 
     BoundingBox germany_bb;
-    germany_bb.latShift = 0.0;
-    germany_bb.lonShift = 0.0;
     germany_bb.lowerLeft.lat = 47.302;
     germany_bb.lowerLeft.lon = 5.989;
     germany_bb.upperRight.lat = 54.983;
@@ -802,8 +642,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Germany"), germany_bb);
 
     BoundingBox gibraltar_bb;
-    gibraltar_bb.latShift = 0.0;
-    gibraltar_bb.lonShift = 0.0;
     gibraltar_bb.lowerLeft.lat = 36.108;
     gibraltar_bb.lowerLeft.lon = -5.358;
     gibraltar_bb.upperRight.lat = 36.156;
@@ -811,8 +649,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Gibraltar"), gibraltar_bb);
 
     BoundingBox greece_bb;
-    greece_bb.latShift = 0.0;
-    greece_bb.lonShift = 0.0;
     greece_bb.lowerLeft.lat = 34.920;
     greece_bb.lowerLeft.lon = 20.150;
     greece_bb.upperRight.lat = 41.827;
@@ -820,8 +656,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Greece"), greece_bb);
 
     BoundingBox guernsey_bb;
-    guernsey_bb.latShift = 0.0;
-    guernsey_bb.lonShift = 0.0;
     guernsey_bb.lowerLeft.lat = 49.406;
     guernsey_bb.lowerLeft.lon = -2.675;
     guernsey_bb.upperRight.lat = 49.739;
@@ -829,8 +663,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Guernsey"), guernsey_bb);
 
     BoundingBox hungary_bb;
-    hungary_bb.latShift = 0.0;
-    hungary_bb.lonShift = 0.0;
     hungary_bb.lowerLeft.lat = 45.759;
     hungary_bb.lowerLeft.lon = 16.202;
     hungary_bb.upperRight.lat = 48.624;
@@ -838,8 +670,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Hungary"), hungary_bb);
 
     BoundingBox iceland_bb;
-    iceland_bb.latShift = 0.0;
-    iceland_bb.lonShift = 0.0;
     iceland_bb.lowerLeft.lat = 63.496;
     iceland_bb.lowerLeft.lon = -24.326;
     iceland_bb.upperRight.lat = 66.526;
@@ -847,8 +677,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Iceland"), iceland_bb);
 
     BoundingBox ireland_bb;
-    ireland_bb.latShift = 0.0;
-    ireland_bb.lonShift = 0.0;
     ireland_bb.lowerLeft.lat = 51.669;
     ireland_bb.lowerLeft.lon = -9.977;
     ireland_bb.upperRight.lat = 55.132;
@@ -856,8 +684,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ireland"), ireland_bb);
 
     BoundingBox isle_of_man_bb;
-    isle_of_man_bb.latShift = 0.0;
-    isle_of_man_bb.lonShift = 0.0;
     isle_of_man_bb.lowerLeft.lat = 54.045;
     isle_of_man_bb.lowerLeft.lon = -4.830;
     isle_of_man_bb.upperRight.lat = 54.419;
@@ -865,8 +691,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Isle_of_Man"), isle_of_man_bb);
 
     BoundingBox italy_bb;
-    italy_bb.latShift = 0.0;
-    italy_bb.lonShift = 0.0;
     italy_bb.lowerLeft.lat = 36.620;
     italy_bb.lowerLeft.lon = 6.745;
     italy_bb.upperRight.lat = 47.115;
@@ -874,8 +698,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Italy"), italy_bb);
 
     BoundingBox jersey_bb;
-    jersey_bb.latShift = 0.0;
-    jersey_bb.lonShift = 0.0;
     jersey_bb.lowerLeft.lat = 49.162;
     jersey_bb.lowerLeft.lon = -2.255;
     jersey_bb.upperRight.lat = 49.262;
@@ -883,8 +705,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Jersey"), jersey_bb);
 
     BoundingBox kazakhstan_bb;
-    kazakhstan_bb.latShift = 0.0;
-    kazakhstan_bb.lonShift = 0.0;
     kazakhstan_bb.lowerLeft.lat = 40.663;
     kazakhstan_bb.lowerLeft.lon = 46.466;
     kazakhstan_bb.upperRight.lat = 55.385;
@@ -892,8 +712,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Kazakhstan"), kazakhstan_bb);
 
     BoundingBox kosovo_bb;
-    kosovo_bb.latShift = 0.0;
-    kosovo_bb.lonShift = 0.0;
     kosovo_bb.lowerLeft.lat = 42.111;
     kosovo_bb.lowerLeft.lon = 20.787;
     kosovo_bb.upperRight.lat = 43.153;
@@ -901,8 +719,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Kosovo"), kosovo_bb);
 
     BoundingBox latvia_bb;
-    latvia_bb.latShift = 0.0;
-    latvia_bb.lonShift = 0.0;
     latvia_bb.lowerLeft.lat = 55.615;
     latvia_bb.lowerLeft.lon = 21.056;
     latvia_bb.upperRight.lat = 57.970;
@@ -910,8 +726,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Latvia"), latvia_bb);
 
     BoundingBox liechtenstein_bb;
-    liechtenstein_bb.latShift = 0.0;
-    liechtenstein_bb.lonShift = 0.0;
     liechtenstein_bb.lowerLeft.lat = 47.048;
     liechtenstein_bb.lowerLeft.lon = 9.472;
     liechtenstein_bb.upperRight.lat = 47.270;
@@ -919,8 +733,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Liechtenstein"), liechtenstein_bb);
 
     BoundingBox lithuania_bb;
-    lithuania_bb.latShift = 0.0;
-    lithuania_bb.lonShift = 0.0;
     lithuania_bb.lowerLeft.lat = 53.906;
     lithuania_bb.lowerLeft.lon = 21.056;
     lithuania_bb.upperRight.lat = 56.373;
@@ -928,8 +740,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Lithuania"), lithuania_bb);
 
     BoundingBox luxembourg_bb;
-    luxembourg_bb.latShift = 0.0;
-    luxembourg_bb.lonShift = 0.0;
     luxembourg_bb.lowerLeft.lat = 49.443;
     luxembourg_bb.lowerLeft.lon = 5.674;
     luxembourg_bb.upperRight.lat = 50.128;
@@ -937,8 +747,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Luxembourg"), luxembourg_bb);
 
     BoundingBox macedonia_bb;
-    macedonia_bb.latShift = 0.0;
-    macedonia_bb.lonShift = 0.0;
     macedonia_bb.lowerLeft.lat = 40.843;
     macedonia_bb.lowerLeft.lon = 20.463;
     macedonia_bb.upperRight.lat = 42.320;
@@ -946,8 +754,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Macedonia"), macedonia_bb);
 
     BoundingBox malta_bb;
-    malta_bb.latShift = 0.0;
-    malta_bb.lonShift = 0.0;
     malta_bb.lowerLeft.lat = 35.786;
     malta_bb.lowerLeft.lon = 14.183;
     malta_bb.upperRight.lat = 36.082;
@@ -955,8 +761,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Malta"), malta_bb);
 
     BoundingBox moldova_bb;
-    moldova_bb.latShift = 0.0;
-    moldova_bb.lonShift = 0.0;
     moldova_bb.lowerLeft.lat = 45.488;
     moldova_bb.lowerLeft.lon = 26.619;
     moldova_bb.upperRight.lat = 48.497;
@@ -964,8 +768,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Moldova"), moldova_bb);
 
     BoundingBox monaco_bb;
-    monaco_bb.latShift = 0.0;
-    monaco_bb.lonShift = 0.0;
     monaco_bb.lowerLeft.lat = 43.725;
     monaco_bb.lowerLeft.lon = 7.409;
     monaco_bb.upperRight.lat = 43.752;
@@ -973,8 +775,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Monaco"), monaco_bb);
 
     BoundingBox montenegro_bb;
-    montenegro_bb.latShift = 0.0;
-    montenegro_bb.lonShift = 0.0;
     montenegro_bb.lowerLeft.lat = 41.878;
     montenegro_bb.lowerLeft.lon = 18.45;
     montenegro_bb.upperRight.lat = 43.524;
@@ -982,8 +782,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Montenegro"), montenegro_bb);
 
     BoundingBox netherlands_bb;
-    netherlands_bb.latShift = 0.0;
-    netherlands_bb.lonShift = 0.0;
     netherlands_bb.lowerLeft.lat = 50.804;
     netherlands_bb.lowerLeft.lon = 3.315;
     netherlands_bb.upperRight.lat = 53.510;
@@ -991,8 +789,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Netherlands"), netherlands_bb);
 
     BoundingBox norway_bb;
-    norway_bb.latShift = 0.0;
-    norway_bb.lonShift = 0.0;
     norway_bb.lowerLeft.lat = 58.079;
     norway_bb.lowerLeft.lon = 4.992;
     norway_bb.upperRight.lat = 80.657;
@@ -1000,8 +796,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Norway"), norway_bb);
 
     BoundingBox poland_bb;
-    poland_bb.latShift = 0.0;
-    poland_bb.lonShift = 0.0;
     poland_bb.lowerLeft.lat = 49.027;
     poland_bb.lowerLeft.lon = 14.075;
     poland_bb.upperRight.lat = 54.851;
@@ -1009,8 +803,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Poland"), poland_bb);
 
     BoundingBox portugal_bb;
-    portugal_bb.latShift = 0.0;
-    portugal_bb.lonShift = 0.0;
     portugal_bb.lowerLeft.lat = 36.838;
     portugal_bb.lowerLeft.lon = -9.527;
     portugal_bb.upperRight.lat = 42.280;
@@ -1018,8 +810,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Portugal"), portugal_bb);
 
     BoundingBox romania_bb;
-    romania_bb.latShift = 0.0;
-    romania_bb.lonShift = 0.0;
     romania_bb.lowerLeft.lat = 43.688;
     romania_bb.lowerLeft.lon = 20.220;
     romania_bb.upperRight.lat = 48.221;
@@ -1027,8 +817,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Romania"), romania_bb);
 
     BoundingBox san_marino_bb;
-    san_marino_bb.latShift = 0.0;
-    san_marino_bb.lonShift = 0.0;
     san_marino_bb.lowerLeft.lat = 43.893;
     san_marino_bb.lowerLeft.lon = 12.403;
     san_marino_bb.upperRight.lat = 43.992;
@@ -1036,8 +824,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("San_Marino"), san_marino_bb);
 
     BoundingBox serbia_bb;
-    serbia_bb.latShift = 0.0;
-    serbia_bb.lonShift = 0.0;
     serbia_bb.lowerLeft.lat = 42.245;
     serbia_bb.lowerLeft.lon = 18.830;
     serbia_bb.upperRight.lat = 46.171;
@@ -1045,8 +831,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Serbia"), serbia_bb);
 
     BoundingBox slovakia_bb;
-    slovakia_bb.latShift = 0.0;
-    slovakia_bb.lonShift = 0.0;
     slovakia_bb.lowerLeft.lat = 47.758;
     slovakia_bb.lowerLeft.lon = 16.880;
     slovakia_bb.upperRight.lat = 49.571;
@@ -1054,8 +838,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Slovakia"), slovakia_bb);
 
     BoundingBox slovenia_bb;
-    slovenia_bb.latShift = 0.0;
-    slovenia_bb.lonShift = 0.0;
     slovenia_bb.lowerLeft.lat = 45.452;
     slovenia_bb.lowerLeft.lon = 13.698;
     slovenia_bb.upperRight.lat = 46.852;
@@ -1063,8 +845,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Slovenia"), slovenia_bb);
 
     BoundingBox spain_bb;
-    spain_bb.latShift = 0.0;
-    spain_bb.lonShift = 0.0;
     spain_bb.lowerLeft.lat = 35.947;
     spain_bb.lowerLeft.lon = -9.393;
     spain_bb.upperRight.lat = 43.748;
@@ -1072,8 +852,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Spain"), spain_bb);
 
     BoundingBox sweden_bb;
-    sweden_bb.latShift = 0.0;
-    sweden_bb.lonShift = 0.0;
     sweden_bb.lowerLeft.lat = 55.362;
     sweden_bb.lowerLeft.lon = 11.027;
     sweden_bb.upperRight.lat = 69.106;
@@ -1081,8 +859,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Sweden"), sweden_bb);
 
     BoundingBox switzerland_bb;
-    switzerland_bb.latShift = 0.0;
-    switzerland_bb.lonShift = 0.0;
     switzerland_bb.lowerLeft.lat = 45.777;
     switzerland_bb.lowerLeft.lon = 6.023;
     switzerland_bb.upperRight.lat = 47.831;
@@ -1090,8 +866,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Switzerland"), switzerland_bb);
 
     BoundingBox ukraine_bb;
-    ukraine_bb.latShift = 0.0;
-    ukraine_bb.lonShift = 0.0;
     ukraine_bb.lowerLeft.lat = 44.361;
     ukraine_bb.lowerLeft.lon = 22.057;
     ukraine_bb.upperRight.lat = 52.335;
@@ -1099,8 +873,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("Ukraine"), ukraine_bb);
 
     BoundingBox united_kingdom_bb;
-    united_kingdom_bb.latShift = 0.0;
-    united_kingdom_bb.lonShift = 0.0;
     united_kingdom_bb.lowerLeft.lat = 49.960;
     united_kingdom_bb.lowerLeft.lon = -7.572;
     united_kingdom_bb.upperRight.lat = 58.635;
@@ -1108,8 +880,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("United_Kingdom"), united_kingdom_bb);
 
     BoundingBox india_bb;
-    india_bb.latShift = 0.0;
-    india_bb.lonShift = 0.0;
     india_bb.lowerLeft.lat = 6.0;
     india_bb.lowerLeft.lon = 65.0;
     india_bb.upperRight.lat = 35.956;
@@ -1117,8 +887,6 @@ QMap<QString, BoundingBox> countryBoundingBoxes()
     retn.insert(QLatin1String("India"), india_bb);
 
     BoundingBox australia_bb;
-    australia_bb.latShift = 0.0;
-    australia_bb.lonShift = 0.0;
     australia_bb.lowerLeft.lat = -55.05;
     australia_bb.lowerLeft.lon = 112.467;
     australia_bb.upperRight.lat = -9.133;
