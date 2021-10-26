@@ -40,8 +40,8 @@ namespace {
     const quint32 MinimumInterval = 10000;      // 10s, the shortest interval at which the plugin will recalculate position since last update
     const quint32 ReuseInterval = 30000;        // 30s, the amount of time a previously calculated position updates will be re-used for without recalculating new position
     const quint32 FallbackInterval = 120000;    // 120s, the amount of time a previously calculated position update with high accuracy can supercede a newly calculated low-accuracy position
-    const QString LocationSettingsDir = QStringLiteral("/etc/location/");
-    const QString LocationSettingsFile = QStringLiteral("/etc/location/location.conf");
+    const QString LocationSettingsDir = QStringLiteral("/var/lib/location/");
+    const QString LocationSettingsFile = QStringLiteral("/var/lib/location/location.conf");
     const QString LocationSettingsEnabledKey = QStringLiteral("location/enabled");
     const QString LocationSettingsMlsEnabledKey = QStringLiteral("location/mls/enabled");
     const QString LocationSettingsMlsOnlineEnabledKey = QStringLiteral("location/mls/online_enabled");
