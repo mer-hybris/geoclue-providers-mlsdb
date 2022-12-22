@@ -32,6 +32,8 @@
 #include <strings.h>
 #include <sys/time.h>
 
+#define DATA_SIZE 8 // 64 bits / 8 bits to the byte
+
 namespace {
     MlsdbProvider *staticProvider = 0;
     const int MinimumCalculatedAccuracy = 2500; // 2500 metres - arbitrary but large, manual cell-based triangulation is error-prone.
@@ -134,51 +136,63 @@ MlsdbProvider::~MlsdbProvider()
         staticProvider = 0;
 }
 
-/* TODO: coalesce lookups to avoid unnecessary repeated file I/O */
-bool MlsdbProvider::searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords)
+// TODO: Search alternative locations for files with mlsdb data
+bool MlsdbProvider::searchForCellIdLocation(quint64 uniqueCellId, MlsdbCoords *coords)
 {
-    // try to find the mlsdb data file which should contain it.
-    // the mlsdb data files are separated into "first digit of location code" directories/buckets.
-    QChar firstDigitAreaCode = QString::number(uniqueCellId.locationCode()).at(0);
-    QDirIterator it("/usr/share/geoclue-provider-mlsdb/", QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        const QString fname(it.next());
-        if (fname.endsWith(QStringLiteral("/%1/mlsdb.data").arg(firstDigitAreaCode), Qt::CaseInsensitive)) {
-            // found an mlsdb.data file which might contain the cell data.  search it.
-            QFile file(fname);
-            file.open(QIODevice::ReadOnly);
-            QDataStream in(&file);
-            quint32 magic = 0, expectedMagic = (quint32)0xc710cdb;
-            in >> magic;
-            if (magic != 0xc710cdb) {
-                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "format unknown:" << magic << "expected:" << expectedMagic;
-                continue; // ignore this file
-            }
-            qint32 version;
-            in >> version;
-            if (version != 3) {
-                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "version unknown:" << version;
-                continue; // ignore this file
-            }
-
-            QMap<MlsdbUniqueCellId, MlsdbCoords> perLcCellIdToLocations;
-            in >> perLcCellIdToLocations;
-            if (perLcCellIdToLocations.isEmpty()) {
-                qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contained no cell locations!";
-            } else {
-                if (perLcCellIdToLocations.contains(uniqueCellId)) {
-                    *coords = perLcCellIdToLocations.value(uniqueCellId);
-                    qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contains the location of composed cell id:" << uniqueCellId.toString() << "->" << coords->lat << "," << coords->lon;
-                    return true; // found!
-                } else {
-                    qCDebug(lcGeoclueMlsdb) << "geoclue-mlsdb data file" << fname << "contains" << perLcCellIdToLocations.size() << "cell locations, but not for:" << uniqueCellId.toString();
-                }
+    if (uniqueCellId == 0) {
+        return false;
+    }
+    QString datfile = "/usr/share/geoclue-provider-mlsdb/data/";
+    quint16 mcc = getCellMcc(uniqueCellId);
+    datfile.append(QString::number(mcc));
+    datfile.append(".dat");
+    FILE *fileptr = fopen(datfile.toStdString().c_str(), "r");
+    if (fileptr == NULL) {
+        fprintf(stderr, "WARNING: Unable to open data file for mcc %d\n", mcc);
+        return false;
+    }
+    fseek(fileptr, 0, SEEK_END);
+    size_t filesize = ftell(fileptr);
+    if (filesize % (2 * DATA_SIZE) != 0) {
+        fprintf(stderr, "ERROR: File size is not a multiple of data size. Corrupt file?\n");
+        return false;
+    }
+    size_t pos = filesize / 4; // Halfway through network data (== first half) of file
+    if (pos % DATA_SIZE != 0) {
+        pos -= DATA_SIZE / 2;
+    }
+    size_t half = pos;
+    size_t old_pos = 1, old_pos2 = 1;
+    quint64 network = 0;
+    quint64 uid = uniqueCellId & 0xFFFFFFFFFFFFFF;
+    while (uid != network) {
+        if (old_pos == pos || old_pos2 == pos) {
+            fprintf(stderr, "WARNING: Could not find exact record. Target is %llu, closest match is %llu\n", uid, network);
+            return false;
+        }
+        old_pos2 = old_pos;
+        old_pos = pos;
+        fseek(fileptr, pos, SEEK_SET);
+        fread(&network, DATA_SIZE, 1, fileptr);
+        half /= 2;
+        if (half % DATA_SIZE != 0) {
+            half -= DATA_SIZE / 2;
+            if (half == 0) {
+                half = DATA_SIZE;
             }
         }
+        if (uid > network) {
+            pos += half;
+        }
+        else if (uid < network) {
+            pos -= half;
+        }
     }
-
-    qCDebug(lcGeoclueMlsdb) << "no geoclue-mlsdb data files contain the location of composed cell id:" << uniqueCellId.toString();
-    return false;
+    fseek(fileptr, pos + (filesize / 2), SEEK_SET); // Jump to location data (== 2nd half)
+    fread(&(coords->lat), DATA_SIZE / 2, 1, fileptr);
+    fread(&(coords->lon), DATA_SIZE / 2, 1, fileptr);
+    fclose(fileptr);
+    return true;
 }
 
 void MlsdbProvider::AddReference()
@@ -376,7 +390,7 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
 
     qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
     quint32 maxNeighborSignalStrength = 1;
-    QSet<MlsdbUniqueCellId> seenCellIds;
+    QSet<quint64> seenCellIds;
     Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
         CellPositioningData cell;
         quint32 locationCode = 0;
@@ -402,9 +416,9 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
                                             << " tac:" << c->tac() << " pci:" << c->pci() << " psc:" << c->psc();
             continue;
         }
-        cell.uniqueCellId = MlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
+        cell.uniqueCellId = getMlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
         if (!seenCellIds.contains(cell.uniqueCellId)) {
-            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell:" << cell.uniqueCellId.toString()
+            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell: " << cell.uniqueCellId
                                             << "with strength:" << c->signalStrength();
             cell.signalStrength = c->signalStrength();
             if (cell.signalStrength > maxNeighborSignalStrength) {
@@ -425,7 +439,7 @@ void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &ce
 {
     // determine which cells we have an accurate location for, from MLSDB data.
     double totalSignalStrength = 0.0;
-    QMap<MlsdbUniqueCellId, MlsdbCoords> cellLocations;
+    QMap<quint64, MlsdbCoords> cellLocations;
     Q_FOREACH (const CellPositioningData &cell, cells) {
         MlsdbCoords cellCoords;
         if (!m_uniqueCellIdToLocation.contains(cell.uniqueCellId)) {
@@ -470,11 +484,11 @@ void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &ce
             double weight = (((double)cell.signalStrength) / totalSignalStrength);
             deviceLatitude += (weight * cellCoords.lat);
             deviceLongitude += (weight * cellCoords.lon);
-            qCDebug(lcGeoclueMlsdbPosition) << "have cell:" << cell.uniqueCellId.toString()
-                                            << "with position:" << cellCoords.lat << "," << cellCoords.lon
-                                            << "with strength:" << ((double)cell.signalStrength / totalSignalStrength);
+            qCDebug(lcGeoclueMlsdbPosition) << "have cell: " << cell.uniqueCellId
+                                            << "with position: " << cellCoords.lat << "," << cellCoords.lon
+                                            << "with strength: " << ((double)cell.signalStrength / totalSignalStrength);
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell with id:" << cell.uniqueCellId.toString();
+            qCDebug(lcGeoclueMlsdbPosition) << "do not know position of cell with id: " << cell.uniqueCellId;
         }
     }
 

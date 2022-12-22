@@ -64,7 +64,7 @@ class MlsdbProvider : public QObject, public QDBusContext
 
 public:
     struct CellPositioningData {
-        MlsdbUniqueCellId uniqueCellId;
+        quint64 uniqueCellId;
         quint32 signalStrength;
     };
 
@@ -136,7 +136,7 @@ private:
 
     QList<CellPositioningData> seenCellIds() const;
     void updateLocationFromCells(const QList<CellPositioningData> &cells);
-    bool searchForCellIdLocation(const MlsdbUniqueCellId &uniqueCellId, MlsdbCoords *coords);
+    bool searchForCellIdLocation(quint64 uniqueCellId, MlsdbCoords *coords);
 
     QFileSystemWatcher m_locationSettingsWatcher;
     bool m_positioningEnabled;
@@ -153,8 +153,8 @@ private:
     QPair<QDateTime, QVariantMap> m_previousQuery;
 
     QOfonoExtCellWatcher *m_cellWatcher;
-    QMap<MlsdbUniqueCellId, MlsdbCoords> m_uniqueCellIdToLocation; // cache
-    QSet<MlsdbUniqueCellId> m_knownCellIdsWithUnknownLocations;
+    QMap<quint64, MlsdbCoords> m_uniqueCellIdToLocation; // cache
+    QSet<quint64> m_knownCellIdsWithUnknownLocations;
 
     QDBusServiceWatcher *m_watcher;
     struct ServiceData {

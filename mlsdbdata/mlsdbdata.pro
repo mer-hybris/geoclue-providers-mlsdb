@@ -1,16 +1,16 @@
 TEMPLATE=aux
 
-# India: generated with: geoclue-mlsdb-tool -c India MLS-full-cell-export-2016-03-14T000000.csv
-india_data.files=in/*
-india_data.path=/usr/share/geoclue-provider-mlsdb/in/
+# India:
+india_data.files=data/404.* data/405.*
+india_data.path=/usr/share/geoclue-provider-mlsdb/data/
 
-# Australia: generated with: geoclue-mlsdb-tool -c Australia MLS-full-cell-export-2016-03-14T000000.csv
-australia_data.files=au/*
-australia_data.path=/usr/share/geoclue-provider-mlsdb/au/
+# Australia:
+australia_data.files=data/505.*
+australia_data.path=/usr/share/geoclue-provider-mlsdb/data/
 
-# Finland: generated with: geoclue-mlsdb-tool -c Finland MLS-full-cell-export-2016-03-14T000000.csv
-finland_data.files=fi/*
-finland_data.path=/usr/share/geoclue-provider-mlsdb/fi/
+# Finland:
+finland_data.files=data/244.*
+finland_data.path=/usr/share/geoclue-provider-mlsdb/data/
 
 OTHER_FILES += \
     $$india_data.files \
