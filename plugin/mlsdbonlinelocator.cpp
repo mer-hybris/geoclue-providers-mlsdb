@@ -373,10 +373,11 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
     QVariantMap map;
     if (!cells.isEmpty()) {
         QVariantList cellTowers;
+        quint32 temp;
         Q_FOREACH (const MlsdbProvider::CellPositioningData &cell, cells) {
             QVariantMap cellTowerMap;
             // supported radio types: gsm, wcdma or lte
-            switch (cell.uniqueCellId.cellType()) {
+            switch (getCellType(cell.uniqueCellId)) {
             case MLSDB_CELL_TYPE_LTE:
                 cellTowerMap["radioType"] = "lte";
                 break;
@@ -390,17 +391,21 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
                 // type currently unsupported by MLS, don't add it to the field
                 break;
             }
-            if (cell.uniqueCellId.mcc() != 0) {
-                cellTowerMap["mobileCountryCode"] = cell.uniqueCellId.mcc();
+            temp = getCellMcc(cell.uniqueCellId);
+            if (temp != 0) {
+                cellTowerMap["mobileCountryCode"] = temp;
             }
-            if (cell.uniqueCellId.mnc() != 0) {
-                cellTowerMap["mobileNetworkCode"] = cell.uniqueCellId.mnc();
+            temp = getCellMnc(cell.uniqueCellId);
+            if (temp != 0) {
+                cellTowerMap["mobileNetworkCode"] = temp;
             }
-            if (cell.uniqueCellId.locationCode() != 0) {
-                cellTowerMap["locationAreaCode"] = cell.uniqueCellId.locationCode();
+            temp = getCellArea(cell.uniqueCellId);
+            if (temp != 0) {
+                cellTowerMap["locationAreaCode"] = temp;
             }
-            if (cell.uniqueCellId.cellId() != 0) {
-                cellTowerMap["cellId"] = cell.uniqueCellId.cellId();
+            temp = getCellId(cell.uniqueCellId);
+            if (temp != 0) {
+                cellTowerMap["cellId"] = temp;
             }
             if (cellTowerMap.size() < 5) {
                 // "Cell based position estimates require each cell record to contain
