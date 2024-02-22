@@ -403,7 +403,11 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
                                ? MLSDB_CELL_TYPE_GSM
                                : c->type() == QOfonoExtCell::WCDMA
                                ? MLSDB_CELL_TYPE_UMTS
-                               : MLSDB_CELL_TYPE_UMTS;
+                               : MLSDB_CELL_TYPE_OTHER;
+        if (cellType == MLSDB_CELL_TYPE_OTHER) {
+            qCDebug(lcGeoclueMlsdbPosition) << "ignoring cell with unknown type" << c->type();
+            continue;
+        }
         if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0 && mcc != 0) {
             locationCode = static_cast<quint32>(c->lac());
             cellId = static_cast<quint32>(c->cid());
