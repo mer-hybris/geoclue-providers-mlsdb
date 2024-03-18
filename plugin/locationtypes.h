@@ -22,7 +22,7 @@ class AccuracyData : public QSharedData
 public:
     AccuracyData() : horizontal(qQNaN()), vertical(qQNaN()) { }
     AccuracyData(const AccuracyData &other)
-    :   QSharedData(other), horizontal(other.horizontal), vertical(other.vertical)
+        : QSharedData(other), horizontal(other.horizontal), vertical(other.vertical)
     { }
     ~AccuracyData() { }
 
@@ -35,6 +35,7 @@ class Accuracy
 public:
     Accuracy() : d(new AccuracyData) { }
     Accuracy(const Accuracy &other) : d(other.d) { }
+    Accuracy &operator=(const Accuracy &) = default;
 
     inline double horizontal() const { return d->horizontal; }
     inline void setHorizontal(double accuracy) { d->horizontal = accuracy; }
@@ -49,13 +50,13 @@ class LocationData : public QSharedData
 {
 public:
     LocationData()
-    :   timestamp(0), latitude(qQNaN()), longitude(qQNaN()), altitude(qQNaN()), speed(qQNaN()),
-        direction(qQNaN()), climb(qQNaN())
+        : timestamp(0), latitude(qQNaN()), longitude(qQNaN()), altitude(qQNaN()), speed(qQNaN()),
+          direction(qQNaN()), climb(qQNaN())
     { }
     LocationData(const LocationData &other)
-    :   QSharedData(other), timestamp(other.timestamp), latitude(other.latitude),
-        longitude(other.longitude), altitude(other.altitude), speed(other.speed),
-        direction(other.direction), climb(other.climb), accuracy(other.accuracy)
+        : QSharedData(other), timestamp(other.timestamp), latitude(other.latitude),
+          longitude(other.longitude), altitude(other.altitude), speed(other.speed),
+          direction(other.direction), climb(other.climb), accuracy(other.accuracy)
     { }
     ~LocationData() { }
 
@@ -76,6 +77,7 @@ class Location
 public:
     Location() : d(new LocationData) { }
     Location(const Location &other) : d(other.d) { }
+    Location &operator=(const Location &) = default;
 
     inline qint64 timestamp() const { return d->timestamp; }
     inline void setTimestamp(qint64 timestamp) { d->timestamp = timestamp; }
