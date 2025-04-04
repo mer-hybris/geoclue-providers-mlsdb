@@ -85,6 +85,7 @@ private:
 
     QVector<NetworkService*> m_wlanServices;
     QString m_mlsKey;
+    QString m_mlsUrl;
 
     bool m_fallbacksLacf;
     bool m_fallbacksIpf;

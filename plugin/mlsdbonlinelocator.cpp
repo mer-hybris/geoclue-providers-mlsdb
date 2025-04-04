@@ -38,9 +38,11 @@
 #define REQUEST_BASE_ADAPTIVE_INTERVAL 60000 /* 60 seconds */
 #define REQUEST_MODIFY_ADAPTIVE_INTERVAL 10000 /* 10 seconds */
 
+#define DEFAULT_API_URL "https://location.services.mozilla.com/v1/geolocate"
+
 /*
  * HTTP requests are sent based on the Mozilla Location Services API.
- * See https://mozilla.github.io/ichnaea/api/geolocate.html for protocol documentation.
+ * See https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#field-definition for protocol documentation.
  */
 
 namespace {
@@ -80,6 +82,8 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     QSettings settings(MLSConfigFile, QSettings::IniFormat);
     m_fallbacksLacf = settings.value("MLS/FALLBACKS_LACF", true).toBool();
     m_fallbacksIpf = settings.value("MLS/FALLBACKS_IPF", true).toBool();
+    m_mlsKey = settings.value("MLS/CUSTOM_KEY").toString();
+    m_mlsUrl = settings.value("MLS/CUSTOM_URL", DEFAULT_API_URL).toString();
 
     qCDebug(lcGeoclueMlsdb) << "MLS_FALLBACKS_LACF" << m_fallbacksLacf
                             << "MLS_FALLBACKS_IPF" << m_fallbacksIpf;
@@ -244,7 +248,7 @@ bool MlsdbOnlineLocator::findLocation(const QPair<QDateTime, QVariantMap> &query
         }
     }
 
-    QNetworkRequest req(QUrl("https://location.services.mozilla.com/v1/geolocate?key=" + m_mlsKey));
+    QNetworkRequest req(QUrl(m_mlsUrl + (!m_mlsKey.isEmpty() ? "?key=" + m_mlsKey : QString())));
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     const QJsonDocument doc = QJsonDocument::fromVariant(query.second);
@@ -411,7 +415,7 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
                 // "Cell based position estimates require each cell record to contain
                 // at least the five radioType, mobileCountryCode, mobileNetworkCode,
                 // locationAreaCode and cellId values."
-                // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+                // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#field-definition
                 continue;
             }
             if (cell.signalStrength != 0) {
@@ -437,7 +441,7 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields() const
         for (int i = 0; i < m_wlanServices.count(); i++) {
             NetworkService *service = m_wlanServices.at(i);
             if (service->hidden() || service->name().endsWith(QStringLiteral("_nomap"))) {
-                // https://mozilla.github.io/ichnaea/api/geolocate.html
+                // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html
                 // "Hidden WiFi networks and those whose SSID (clear text name) ends with the string
                 // _nomap must NOT be used for privacy reasons."
                 continue;
@@ -445,7 +449,7 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields() const
             if (service->bssid().isEmpty()) {
                 // "Though in order to get a Bluetooth or WiFi based position estimate at least
                 // two networks need to be provided and for each the macAddress needs to be known."
-                // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+                // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#field-definition
                 continue;
             }
             QVariantMap wifiInfo;
@@ -457,7 +461,7 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields() const
         if (wifiInfoList.size() >= 2) {
             // "The minimum of two networks is a mandatory privacy
             // restriction for Bluetooth and WiFi based location services."
-            // https://mozilla.github.io/ichnaea/api/geolocate.html#field-definition
+            // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#field-definition
             map["wifiAccessPoints"] = wifiInfoList;
         }
     }
