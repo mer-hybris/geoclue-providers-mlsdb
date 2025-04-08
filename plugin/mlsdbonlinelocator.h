@@ -18,7 +18,7 @@
 #include <QtCore/QVector>
 #include <QtCore/QTimer>
 
-#include <MGConfItem>
+#include <MDConfItem>
 
 #include "mlsdbprovider.h"
 
@@ -94,7 +94,7 @@ private:
     mutable quint32 m_adaptiveInterval;
     mutable QVector<qint64> m_queryTimestamps;
 
-    MGConfItem m_keyFailureTime;
+    MDConfItem m_keyFailureTime;
 };
 
 #endif // MLSDBONLINELOCATOR_H
