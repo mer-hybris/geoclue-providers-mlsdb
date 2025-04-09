@@ -18,7 +18,7 @@
 #include <QtCore/QVector>
 #include <QtCore/QTimer>
 
-#include <MGConfItem>
+#include <MDConfItem>
 
 #include "mlsdbprovider.h"
 
@@ -85,6 +85,7 @@ private:
 
     QVector<NetworkService*> m_wlanServices;
     QString m_mlsKey;
+    QString m_mlsUrl;
 
     bool m_fallbacksLacf;
     bool m_fallbacksIpf;
@@ -94,7 +95,7 @@ private:
     mutable quint32 m_adaptiveInterval;
     mutable QVector<qint64> m_queryTimestamps;
 
-    MGConfItem m_keyFailureTime;
+    MDConfItem m_keyFailureTime;
 };
 
 #endif // MLSDBONLINELOCATOR_H
