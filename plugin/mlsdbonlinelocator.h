@@ -74,7 +74,6 @@ private:
     QVariantMap fallbackFields() const;
 
     void setupSimManager();
-    bool loadMlsKey();
 
     QNetworkAccessManager *m_nam;
     QOfonoExtModemManager *m_modemManager;
