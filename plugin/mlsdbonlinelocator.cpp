@@ -26,7 +26,6 @@
 #include <QtGlobal>
 #include <QSettings>
 
-#include <sailfishkeyprovider.h>
 #include <qofonosimmanager.h>
 #include <qofonoextmodemmanager.h>
 #include <networkmanager.h>
@@ -38,7 +37,8 @@
 #define REQUEST_BASE_ADAPTIVE_INTERVAL 60000 /* 60 seconds */
 #define REQUEST_MODIFY_ADAPTIVE_INTERVAL 10000 /* 10 seconds */
 
-#define DEFAULT_API_URL "https://location.services.mozilla.com/v1/geolocate"
+#define DEFAULT_API_KEY "geoclue_sailfishos"
+#define DEFAULT_API_URL "https://api.beacondb.net/v1/geolocate"
 
 /*
  * HTTP requests are sent based on the Mozilla Location Services API.
@@ -82,7 +82,7 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     QSettings settings(MLSConfigFile, QSettings::IniFormat);
     m_fallbacksLacf = settings.value("MLS/FALLBACKS_LACF", true).toBool();
     m_fallbacksIpf = settings.value("MLS/FALLBACKS_IPF", true).toBool();
-    m_mlsKey = settings.value("MLS/CUSTOM_KEY").toString();
+    m_mlsKey = settings.value("MLS/CUSTOM_KEY", DEFAULT_API_KEY).toString();
     m_mlsUrl = settings.value("MLS/CUSTOM_URL", DEFAULT_API_URL).toString();
 
     qCDebug(lcGeoclueMlsdb) << "MLS_FALLBACKS_LACF" << m_fallbacksLacf
@@ -220,11 +220,6 @@ bool MlsdbOnlineLocator::findLocation(const QPair<QDateTime, QVariantMap> &query
 {
     if (query.first.isNull() || query.second.isEmpty()) {
         qCDebug(lcGeoclueMlsdbOnline) << "Empty query data provided";
-        return false;
-    }
-
-    if (!loadMlsKey()) {
-        qCDebug(lcGeoclueMlsdbOnline) << "Unable to load MLS API key";
         return false;
     }
 
@@ -501,25 +496,4 @@ void MlsdbOnlineLocator::setupSimManager()
     if (modem != m_simManager->modemPath()) {
         m_simManager->setModemPath(modem);
     }
-}
-
-
-bool MlsdbOnlineLocator::loadMlsKey()
-{
-    if (!m_mlsKey.isEmpty()) {
-        return true;
-    }
-
-    char *keyBuf = NULL;
-    int success = SailfishKeyProvider_storedKey("mls", "mls-geolocate", "key", &keyBuf);
-    if (keyBuf == NULL) {
-        return false;
-    } else if (success != 0) {
-        free(keyBuf);
-        return false;
-    }
-
-    m_mlsKey = QLatin1String(keyBuf);
-    free(keyBuf);
-    return true;
 }
