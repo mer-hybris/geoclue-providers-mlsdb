@@ -1,7 +1,7 @@
 Name: geoclue-provider-mlsdb
-Version: 0.2.0
+Version: 0.2.5
 Release: 1
-Summary: Geoinformation Service from Mozilla Location Services Database Provider
+Summary: Geoinformation Service with beaconDB / MLS API
 URL: https://github.com/mer-hybris/geoclue-providers-mlsdb
 License: LGPLv2
 Source0: %{name}-%{version}.tar.gz
@@ -15,13 +15,13 @@ BuildRequires: pkgconfig(connman-qt5)
 BuildRequires: pkgconfig(qt5-boostable)
 BuildRequires: pkgconfig(mlite5)
 Requires: mapplauncherd-qt5
-Requires: %{name}-agreements
 
 %description
-%{summary}.
+Provides beaconDB location service, using Mozilla Location Services
+compatible API.
 
 %package agreements
-Summary:  Mozilla Location Services privacy policy agreements
+Summary:  Privacy policy notice for beaconDB
 
 %description agreements
 %{summary}.
