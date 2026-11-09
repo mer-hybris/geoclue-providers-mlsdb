@@ -59,6 +59,7 @@ signals:
 
 private Q_SLOTS:
     void networkServicesChanged();
+    void updateVpnState();
     void enabledModemsChanged(const QStringList &modems);
     void defaultVoiceModemChanged(const QString &modem);
     void requestOnlineLocationFinished(QNetworkReply *reply);
@@ -72,6 +73,7 @@ private:
     QVariantMap cellTowerFields(const QList<MlsdbProvider::CellPositioningData> &cells) const;
     QVariantMap wlanAccessPointFields() const;
     QVariantMap fallbackFields() const;
+    bool vpnConnected() const;
 
     void setupSimManager();
 
@@ -88,6 +90,7 @@ private:
 
     bool m_fallbacksLacf;
     bool m_fallbacksIpf;
+    bool m_vpnConnected;
 
     bool m_wlanDataAllowed;
 

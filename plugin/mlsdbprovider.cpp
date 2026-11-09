@@ -678,6 +678,9 @@ void MlsdbProvider::startPositioningIfNeeded()
 
     qCDebug(lcGeoclueMlsdb) << "Starting positioning";
     m_positioningStarted = true;
+    // Available is kept so master does not drop a provider that already has a fix.
+    if (m_status != StatusAvailable)
+        setStatus(StatusAcquiring);
     calculatePositionAndEmitLocation();
     quint32 updateInterval = minimumRequestedUpdateInterval();
     m_recalculatePositionTimer.start(updateInterval, this);
