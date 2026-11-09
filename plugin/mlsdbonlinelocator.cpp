@@ -63,6 +63,19 @@ QList<quint32> cellIdsFromQueryData(const QVariantMap &queryData)
 
     return cellIds;
 }
+
+bool ipFallbackChanged(const QVariantMap &query, const QVariantMap &previous)
+{
+    if (previous.isEmpty())
+        return false;
+
+    if (query.value(QStringLiteral("considerIp")) != previous.value(QStringLiteral("considerIp")))
+        return true;
+
+    const QVariant newIpf = query.value(QStringLiteral("fallbacks")).toMap().value(QStringLiteral("ipf"));
+    const QVariant oldIpf = previous.value(QStringLiteral("fallbacks")).toMap().value(QStringLiteral("ipf"));
+    return newIpf != oldIpf;
+}
 }
 
 MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
@@ -74,6 +87,7 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_currentReply(0)
     , m_fallbacksLacf(true)
     , m_fallbacksIpf(true)
+    , m_vpnConnected(false)
     , m_wlanDataAllowed(true)
     , m_adaptiveInterval(REQUEST_BASE_ADAPTIVE_INTERVAL)
     , m_keyFailureTime(KeyFailureTimeKey)
@@ -92,6 +106,8 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     connect(m_modemManager, SIGNAL(enabledModemsChanged(QStringList)), SLOT(enabledModemsChanged(QStringList)));
     connect(m_modemManager, SIGNAL(defaultVoiceModemChanged(QString)), SLOT(defaultVoiceModemChanged(QString)));
     connect(m_networkManager, SIGNAL(servicesChanged()), SLOT(networkServicesChanged()));
+    connect(m_networkManager, &NetworkManager::defaultRouteChanged,
+            this, &MlsdbOnlineLocator::updateVpnState);
     connect(&m_replyTimer, &QTimer::timeout, this, &MlsdbOnlineLocator::timeoutReply);
     m_replyTimer.setInterval(REQUEST_REPLY_TIMEOUT_INTERVAL);
     m_replyTimer.setSingleShot(true);
@@ -107,6 +123,19 @@ void MlsdbOnlineLocator::networkServicesChanged()
         m_wlanServices = m_networkManager->getServices("wifi");
         emit wlanChanged();
     }
+    updateVpnState();
+}
+
+void MlsdbOnlineLocator::updateVpnState()
+{
+    const bool connected = vpnConnected();
+    if (connected == m_vpnConnected)
+        return;
+
+    m_vpnConnected = connected;
+    qCDebug(lcGeoclueMlsdbOnline) << "VPN is" << (connected ? "connected" : "disconnected")
+                                  << "- IP geolocation fallback" << (connected ? "off" : "on");
+    emit wlanChanged();
 }
 
 void MlsdbOnlineLocator::enabledModemsChanged(const QStringList &modems)
@@ -170,8 +199,9 @@ QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(
         const bool intervalExceeded = oldQuery.first.isNull() || oldQuery.first.msecsTo(currDt) >= m_adaptiveInterval;
         const bool moreInfo = map.keys().size() > oldQuery.second.keys().size();
         const bool newCells = cellIdsFromQueryData(oldQuery.second) != cellIdsFromQueryData(map);
+        const bool ipPolicyChanged = ipFallbackChanged(map, oldQuery.second);
 
-        if (firstTimeQuery || intervalExceeded || moreInfo || newCells) {
+        if (firstTimeQuery || intervalExceeded || moreInfo || newCells || ipPolicyChanged) {
             // adaptively back-off future requests to avoid server-side throttling.
             static quint32 backOffFactor = 8;
 
@@ -193,13 +223,14 @@ QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(
             // max interval will be about 12 minutes (1 + 10.667 minutes).
             m_adaptiveInterval = REQUEST_BASE_ADAPTIVE_INTERVAL + (REQUEST_MODIFY_ADAPTIVE_INTERVAL * backOffFactor);
 
-            if (backOffFactor == 1 || intervalExceeded) {
+            if (ipPolicyChanged || backOffFactor == 1 || intervalExceeded) {
                 // return the query data for the request.
                 qCDebug(lcGeoclueMlsdbOnline) << "Performing MLS online query due to conditions:"
                                               << "first:" << firstTimeQuery
                                               << "interval:" << intervalExceeded
                                               << "info:" << moreInfo
-                                              << "cells:" << newCells;
+                                              << "cells:" << newCells
+                                              << "ip:" << ipPolicyChanged;
                 m_queryTimestamps.prepend(QDateTime::currentMSecsSinceEpoch());
                 if (m_queryTimestamps.size() > REQUEST_TIMESTAMPS_TO_TRACK) {
                     m_queryTimestamps.removeLast();
@@ -357,11 +388,14 @@ void MlsdbOnlineLocator::checkError(const QByteArray &data)
 QVariantMap MlsdbOnlineLocator::globalFields() const
 {
     QVariantMap map;
+    const bool allowIp = !vpnConnected();
     if (!m_simManager || !m_simManager->isValid()) {
+        if (!allowIp)
+            map["considerIp"] = false;
         return map;
     }
     map["carrier"] = m_simManager->serviceProviderName();
-    map["considerIp"] = true;
+    map["considerIp"] = allowIp;
     map["homeMobileCountryCode"] = m_simManager->mobileCountryCode();
     map["homeMobileNetworkCode"] = m_simManager->mobileNetworkCode();
     return map;
@@ -475,11 +509,25 @@ QVariantMap MlsdbOnlineLocator::fallbackFields() const
 
     // If no position can be estimated based on any of the provided data points, fall back to an
     // estimate based on a GeoIP database based on the senders IP address at the time of the query.
-    fallbacks["ipf"] = m_fallbacksIpf;
+    // A connected VPN replaces that address with the tunnel exit, so the fallback is disabled.
+    fallbacks["ipf"] = m_fallbacksIpf && !vpnConnected();
 
     QVariantMap map;
     map["fallbacks"] = fallbacks;
     return map;
+}
+
+bool MlsdbOnlineLocator::vpnConnected() const
+{
+    if (!m_networkManager)
+        return false;
+
+    const QVector<NetworkService *> services = m_networkManager->getServices(QStringLiteral("vpn"));
+    for (NetworkService *service : services) {
+        if (service && service->connected())
+            return true;
+    }
+    return false;
 }
 
 void MlsdbOnlineLocator::setupSimManager()
