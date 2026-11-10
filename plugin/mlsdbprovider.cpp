@@ -27,7 +27,11 @@
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
-#include <qofonoextcellwatcher.h>
+#include <qofonomanager.h>
+#include <qofononetworkregistration.h>
+#include <qofonoextcell.h>
+#include <qofonoextcellinfo.h>
+#include <qofonoextmodemmanager.h>
 
 #include <strings.h>
 #include <sys/time.h>
@@ -51,6 +55,27 @@ namespace {
     const QString LocationSettingsDataSourceOnlineAllowedKey = QStringLiteral("location/allowed_data_sources/online");
     const QString LocationSettingsDataSourceCellDataAllowedKey = QStringLiteral("location/allowed_data_sources/cell_data");
     const QString LocationSettingsDataSourceWlanDataAllowedKey = QStringLiteral("location/allowed_data_sources/wlan_data");
+
+    MlsdbCellType cellTypeFromTechnology(const QString &technology)
+    {
+        if (technology.compare(QLatin1String("lte"), Qt::CaseInsensitive) == 0)
+            return MLSDB_CELL_TYPE_LTE;
+        if (technology.compare(QLatin1String("umts"), Qt::CaseInsensitive) == 0
+                || technology.compare(QLatin1String("hsdpa"), Qt::CaseInsensitive) == 0
+                || technology.compare(QLatin1String("hsupa"), Qt::CaseInsensitive) == 0
+                || technology.compare(QLatin1String("hspa"), Qt::CaseInsensitive) == 0)
+            return MLSDB_CELL_TYPE_UMTS;
+        if (technology.compare(QLatin1String("gsm"), Qt::CaseInsensitive) == 0
+                || technology.compare(QLatin1String("edge"), Qt::CaseInsensitive) == 0
+                || technology.compare(QLatin1String("gprs"), Qt::CaseInsensitive) == 0)
+            return MLSDB_CELL_TYPE_GSM;
+        return MLSDB_CELL_TYPE_OTHER;
+    }
+
+    double weightingStrength(quint32 signal)
+    {
+        return signal > 0 ? double(signal) : 1.0;
+    }
 }
 
 QDBusArgument &operator<<(QDBusArgument &argument, const Accuracy &accuracy)
@@ -88,7 +113,7 @@ MlsdbProvider::MlsdbProvider(QObject *parent)
     m_onlinePositioningEnabled(false),
     m_onlineDataAllowed(false),
     m_wlanDataAllowed(false),
-    m_cellWatcher(Q_NULLPTR),
+    m_networkRegistration(Q_NULLPTR),
     m_signalUpdateCell(false),
     m_signalUpdateWlan(false)
 {
@@ -390,26 +415,24 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
         return cells;
     }
 
-    qCDebug(lcGeoclueMlsdbPosition) << "have" << m_cellWatcher->cells().size() << "neighbouring cells";
-    quint32 maxNeighborSignalStrength = 1;
-    QSet<quint64> seenCellIds;
-    Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_cellWatcher->cells()) {
-        CellPositioningData cell;
+    QSet<quint64> seen;
+    Q_FOREACH (const QSharedPointer<QOfonoExtCell> &c, m_observedCells) {
+        if (!c->valid())
+            continue;
+
         quint32 locationCode = 0;
         quint32 cellId = 0;
-        quint16 mcc = c->mcc();
-        quint16 mnc = c->mnc();
-        MlsdbCellType cellType = c->type() == QOfonoExtCell::LTE
-                               ? MLSDB_CELL_TYPE_LTE
-                               : c->type() == QOfonoExtCell::GSM
-                               ? MLSDB_CELL_TYPE_GSM
-                               : c->type() == QOfonoExtCell::WCDMA
-                               ? MLSDB_CELL_TYPE_UMTS
-                               : MLSDB_CELL_TYPE_OTHER;
-        if (cellType == MLSDB_CELL_TYPE_OTHER) {
-            qCDebug(lcGeoclueMlsdbPosition) << "ignoring cell with unknown type" << c->type();
+        const quint16 mcc = c->mcc();
+        const quint16 mnc = c->mnc();
+        const MlsdbCellType cellType = c->type() == QOfonoExtCell::LTE
+                                     ? MLSDB_CELL_TYPE_LTE
+                                     : c->type() == QOfonoExtCell::GSM
+                                     ? MLSDB_CELL_TYPE_GSM
+                                     : c->type() == QOfonoExtCell::WCDMA
+                                     ? MLSDB_CELL_TYPE_UMTS
+                                     : MLSDB_CELL_TYPE_OTHER;
+        if (cellType == MLSDB_CELL_TYPE_OTHER)
             continue;
-        }
         if (c->cid() != QOfonoExtCell::InvalidValue && c->cid() != 0 && mcc != 0) {
             locationCode = static_cast<quint32>(c->lac());
             cellId = static_cast<quint32>(c->cid());
@@ -417,28 +440,59 @@ QList<MlsdbProvider::CellPositioningData> MlsdbProvider::seenCellIds() const
             locationCode = static_cast<quint32>(c->tac());
             cellId = static_cast<quint32>(c->ci());
         } else {
-            qCDebug(lcGeoclueMlsdbPosition) << "ignoring neighbour cell with no cell id with type:" << c->type()
-                                            << " mcc:" << c->mcc() << " mnc:" << c->mnc() << " lac:" << c->lac()
-                                            << " tac:" << c->tac() << " pci:" << c->pci() << " psc:" << c->psc();
             continue;
         }
+
+        CellPositioningData cell;
         cell.uniqueCellId = getMlsdbUniqueCellId(cellType, cellId, locationCode, mcc, mnc);
-        if (!seenCellIds.contains(cell.uniqueCellId)) {
-            qCDebug(lcGeoclueMlsdbPosition) << "have neighbour cell: " << cell.uniqueCellId
-                                            << "with strength:" << c->signalStrength();
-            cell.signalStrength = c->signalStrength();
-            if (cell.signalStrength > maxNeighborSignalStrength) {
-                // used for the cells we're connected to.
-                // if no signal strength data is available from ofono,
-                // we assume they're at least as strong signals as the
-                // strongest of our neighbor cells.
-                maxNeighborSignalStrength = cell.signalStrength;
-            }
+        cell.signalStrength = c->signalStrength();
+        if (cell.uniqueCellId != 0 && !seen.contains(cell.uniqueCellId)) {
             cells.append(cell);
-            seenCellIds.insert(cell.uniqueCellId);
+            seen.insert(cell.uniqueCellId);
         }
     }
+    appendRegisteredCell(&cells, &seen);
+    qCDebug(lcGeoclueMlsdbPosition) << "have" << cells.size() << "cells for the lookup";
     return cells;
+}
+
+void MlsdbProvider::appendRegisteredCell(QList<CellPositioningData> *cells, QSet<quint64> *seen) const
+{
+    if (!m_networkRegistration || !m_networkRegistration->isValid())
+        return;
+
+    const QString status = m_networkRegistration->status();
+    if (status != QLatin1String("registered") && status != QLatin1String("roaming"))
+        return;
+
+    const MlsdbCellType cellType = cellTypeFromTechnology(m_networkRegistration->technology());
+    if (cellType == MLSDB_CELL_TYPE_OTHER)
+        return;
+
+    bool mccOk = false;
+    bool mncOk = false;
+    const uint mcc = m_networkRegistration->mcc().toUInt(&mccOk);
+    const uint mnc = m_networkRegistration->mnc().toUInt(&mncOk);
+    // For LTE this area is the tracking area. Ofono publishes it in the
+    // registration location-area field when it fits in 16 bits.
+    const uint area = m_networkRegistration->locationAreaCode();
+    const uint cellId = m_networkRegistration->cellId();
+    if (!mccOk || !mncOk || mcc == 0 || mcc > 1023 || mnc > 1023
+            || area == 0 || area > 65534 || cellId == 0 || cellId > 268435455)
+        return;
+
+    const quint64 uniqueCellId = getMlsdbUniqueCellId(
+            cellType, cellId, area, static_cast<quint16>(mcc), static_cast<quint16>(mnc));
+    if (uniqueCellId == 0 || seen->contains(uniqueCellId))
+        return;
+
+    // The registration strength is a percentage. The tower record wants dBm,
+    // so leave that unset rather than sending the percentage as a signal level.
+    CellPositioningData cell;
+    cell.uniqueCellId = uniqueCellId;
+    cell.signalStrength = 0;
+    cells->append(cell);
+    seen->insert(uniqueCellId);
 }
 
 void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &cells)
@@ -467,7 +521,7 @@ void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &ce
         }
         // we have a known location for this cell.  Update our locations list.
         cellLocations.insert(cell.uniqueCellId, cellCoords);
-        totalSignalStrength += (1.0 * cell.signalStrength);
+        totalSignalStrength += weightingStrength(cell.signalStrength);
     }
 
     if (cellLocations.size() == 0) {
@@ -487,7 +541,7 @@ void MlsdbProvider::updateLocationFromCells(const QList<CellPositioningData> &ce
     Q_FOREACH (const CellPositioningData &cell, cells) {
         if (cellLocations.contains(cell.uniqueCellId)) {
             const MlsdbCoords &cellCoords(cellLocations.value(cell.uniqueCellId));
-            double weight = (((double)cell.signalStrength) / totalSignalStrength);
+            double weight = weightingStrength(cell.signalStrength) / totalSignalStrength;
             deviceLatitude += (weight * cellCoords.lat);
             deviceLongitude += (weight * cellCoords.lon);
             qCDebug(lcGeoclueMlsdbPosition) << "have cell: " << cell.uniqueCellId
@@ -593,16 +647,10 @@ void MlsdbProvider::updatePositioningEnabled()
 
     if (m_cellDataAllowed != cellDataAllowed) {
         m_cellDataAllowed = cellDataAllowed;
-        if (!m_cellWatcher && m_cellDataAllowed) {
-            qCDebug(lcGeoclueMlsdb) << "listening for cell data changes";
-            m_cellWatcher = new QOfonoExtCellWatcher(this);
-            connect(m_cellWatcher, &QOfonoExtCellWatcher::cellsChanged,
-                    this, &MlsdbProvider::cellularNetworkRegistrationChanged);
-        } else if (m_cellWatcher && !m_cellDataAllowed) {
-            qCDebug(lcGeoclueMlsdb) << "no longer listening for cell data changes";
-            m_cellWatcher->deleteLater();
-            m_cellWatcher = Q_NULLPTR;
-        }
+        if (m_cellDataAllowed)
+            startObservingCells();
+        else
+            stopObservingCells();
     }
     if (m_cellDataAllowed) {
         qCDebug(lcGeoclueMlsdb) << "allowed to use adjacent cell id data to determine position";
@@ -639,6 +687,98 @@ void MlsdbProvider::updatePositioningEnabled()
         setLocation(Location());
         stopPositioningIfNeeded();
     }
+}
+
+void MlsdbProvider::startObservingCells()
+{
+    qCDebug(lcGeoclueMlsdb) << "listening for cell data changes";
+    if (m_ofonoManager.isNull()) {
+        m_ofonoManager = QOfonoManager::instance();
+        connect(m_ofonoManager.data(), &QOfonoManager::modemsChanged,
+                this, [this](const QStringList &) { refreshObservedCells(); });
+        connect(m_ofonoManager.data(), &QOfonoManager::availableChanged,
+                this, [this](bool) { refreshObservedCells(); });
+    }
+    if (m_modemManager.isNull()) {
+        m_modemManager = QOfonoExtModemManager::instance();
+        connect(m_modemManager.data(), &QOfonoExtModemManager::defaultVoiceModemChanged,
+                this, [this](const QString &) { refreshObservedCells(); });
+    }
+    if (!m_networkRegistration) {
+        m_networkRegistration = new QOfonoNetworkRegistration(this);
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::statusChanged,
+                this, [this](const QString &) { cellularNetworkRegistrationChanged(); });
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::cellIdChanged,
+                this, [this](uint) { cellularNetworkRegistrationChanged(); });
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::locationAreaCodeChanged,
+                this, [this](uint) { cellularNetworkRegistrationChanged(); });
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::technologyChanged,
+                this, [this](const QString &) { cellularNetworkRegistrationChanged(); });
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::mccChanged,
+                this, [this](const QString &) { cellularNetworkRegistrationChanged(); });
+        connect(m_networkRegistration, &QOfonoNetworkRegistration::mncChanged,
+                this, [this](const QString &) { cellularNetworkRegistrationChanged(); });
+    }
+    refreshObservedCells();
+}
+
+void MlsdbProvider::stopObservingCells()
+{
+    qCDebug(lcGeoclueMlsdb) << "no longer listening for cell data changes";
+    m_cellInfo.clear();
+    m_observedCells.clear();
+    if (m_networkRegistration)
+        m_networkRegistration->setModemPath(QString());
+}
+
+void MlsdbProvider::refreshObservedCells()
+{
+    if (!m_cellDataAllowed || m_ofonoManager.isNull() || !m_ofonoManager->available()) {
+        m_cellInfo.clear();
+        m_observedCells.clear();
+        if (m_networkRegistration)
+            m_networkRegistration->setModemPath(QString());
+        cellularNetworkRegistrationChanged();
+        return;
+    }
+
+    QString modem = m_modemManager.isNull() ? QString() : m_modemManager->defaultVoiceModem();
+    if (modem.isEmpty())
+        modem = m_ofonoManager->defaultModem();
+    m_networkRegistration->setModemPath(modem);
+
+    const QStringList modems = m_ofonoManager->modems();
+    QList<QSharedPointer<QOfonoExtCellInfo> > infos;
+    Q_FOREACH (const QString &path, modems) {
+        QSharedPointer<QOfonoExtCellInfo> info = QOfonoExtCellInfo::instance(path);
+        connect(info.data(), &QOfonoExtCellInfo::cellsChanged,
+                this, &MlsdbProvider::refreshObservedCells, Qt::UniqueConnection);
+        infos.append(info);
+    }
+    m_cellInfo = infos;
+
+    QSet<QString> paths;
+    Q_FOREACH (const QSharedPointer<QOfonoExtCellInfo> &info, m_cellInfo) {
+        Q_FOREACH (const QString &path, info->cells())
+            paths.insert(path);
+    }
+
+    for (QMap<QString, QSharedPointer<QOfonoExtCell> >::iterator it = m_observedCells.begin();
+            it != m_observedCells.end(); ) {
+        if (!paths.contains(it.key()))
+            it = m_observedCells.erase(it);
+        else
+            ++it;
+    }
+    Q_FOREACH (const QString &path, paths) {
+        if (m_observedCells.contains(path))
+            continue;
+        QSharedPointer<QOfonoExtCell> cell(new QOfonoExtCell(path));
+        connect(cell.data(), &QOfonoExtCell::validChanged,
+                this, &MlsdbProvider::cellularNetworkRegistrationChanged);
+        m_observedCells.insert(path, cell);
+    }
+    cellularNetworkRegistrationChanged();
 }
 
 void MlsdbProvider::cellularNetworkRegistrationChanged()

@@ -282,7 +282,9 @@ QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(
             // max interval will be about 12 minutes (1 + 10.667 minutes).
             m_adaptiveInterval = REQUEST_BASE_ADAPTIVE_INTERVAL + (REQUEST_MODIFY_ADAPTIVE_INTERVAL * backOffFactor);
 
-            if (ipPolicyChanged || backOffFactor == 1 || intervalExceeded) {
+            // A new cell or Wi-Fi observation is the reason for this request.
+            // The backoff still applies when the observation has not changed.
+            if (newCells || moreInfo || ipPolicyChanged || backOffFactor == 1 || intervalExceeded) {
                 // return the query data for the request.
                 qCDebug(lcGeoclueMlsdbOnline) << "Performing MLS online query due to conditions:"
                                               << "first:" << firstTimeQuery
@@ -487,10 +489,8 @@ QVariantMap MlsdbOnlineLocator::cellTowerFields(const QList<MlsdbProvider::CellP
             if (temp != 0) {
                 cellTowerMap["mobileCountryCode"] = temp;
             }
-            temp = getCellMnc(cell.uniqueCellId);
-            if (temp != 0) {
-                cellTowerMap["mobileNetworkCode"] = temp;
-            }
+            // MNC 0 is a real network code. Treating it as missing drops that tower.
+            cellTowerMap["mobileNetworkCode"] = getCellMnc(cell.uniqueCellId);
             temp = getCellArea(cell.uniqueCellId);
             if (temp != 0) {
                 cellTowerMap["locationAreaCode"] = temp;

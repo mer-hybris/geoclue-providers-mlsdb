@@ -18,6 +18,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QBasicTimer>
 #include <QtCore/QList>
+#include <QtCore/QSharedPointer>
 #include <QtCore/QSet>
 #include <QtCore/QMap>
 #include <QtCore/QDateTime>
@@ -46,7 +47,11 @@ BuildRequires: pkgconfig(android-headers)
 */
 
 QT_FORWARD_DECLARE_CLASS(QDBusServiceWatcher)
-class QOfonoExtCellWatcher;
+class QOfonoExtCell;
+class QOfonoExtCellInfo;
+class QOfonoExtModemManager;
+class QOfonoManager;
+class QOfonoNetworkRegistration;
 class MlsdbOnlineLocator;
 
 /*
@@ -116,6 +121,7 @@ private Q_SLOTS:
     void serviceUnregistered(const QString &service);
     void updatePositioningEnabled();
     void cellularNetworkRegistrationChanged();
+    void refreshObservedCells();
     void onlineLocationFound(double latitude, double longitude, double accuracy);
     void onlineLocationError(const QString &errorString);
     void onlineWlanChanged();
@@ -135,6 +141,9 @@ private:
     void calculatePositionAndEmitLocation();
 
     QList<CellPositioningData> seenCellIds() const;
+    void appendRegisteredCell(QList<CellPositioningData> *cells, QSet<quint64> *seen) const;
+    void startObservingCells();
+    void stopObservingCells();
     void updateLocationFromCells(const QList<CellPositioningData> &cells);
     bool searchForCellIdLocation(quint64 uniqueCellId, MlsdbCoords *coords);
 
@@ -152,7 +161,11 @@ private:
     bool m_wlanDataAllowed;
     QPair<QDateTime, QVariantMap> m_previousQuery;
 
-    QOfonoExtCellWatcher *m_cellWatcher;
+    QSharedPointer<QOfonoManager> m_ofonoManager;
+    QSharedPointer<QOfonoExtModemManager> m_modemManager;
+    QOfonoNetworkRegistration *m_networkRegistration;
+    QList<QSharedPointer<QOfonoExtCellInfo> > m_cellInfo;
+    QMap<QString, QSharedPointer<QOfonoExtCell> > m_observedCells;
     QMap<quint64, MlsdbCoords> m_uniqueCellIdToLocation; // cache
     QSet<quint64> m_knownCellIdsWithUnknownLocations;
 
