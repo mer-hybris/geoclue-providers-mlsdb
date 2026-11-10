@@ -339,6 +339,8 @@ void MlsdbProvider::calculatePositionAndEmitLocation()
             connect(m_mlsdbOnlineLocator, &MlsdbOnlineLocator::error,
                     this, &MlsdbProvider::onlineLocationError);
         }
+        if (m_wlanDataAllowed)
+            m_mlsdbOnlineLocator->requestWlanScan();
         const QPair<QDateTime, QVariantMap> query = m_mlsdbOnlineLocator->buildLocationQuery(
                 cellIds, m_previousQuery);
         if (m_mlsdbOnlineLocator->findLocation(query)) {

@@ -32,6 +32,8 @@
 #include <networkservice.h>
 
 #define REQUEST_REPLY_TIMEOUT_INTERVAL 10000 /* 10 seconds */
+#define WLAN_SCAN_INTERVAL 60000 /* 60 seconds */
+#define INITIAL_WLAN_SCAN_TIMEOUT 15000 /* 15 seconds */
 
 #define REQUEST_TIMESTAMPS_TO_TRACK 10
 #define REQUEST_BASE_ADAPTIVE_INTERVAL 60000 /* 60 seconds */
@@ -89,6 +91,8 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     , m_fallbacksIpf(true)
     , m_vpnConnected(false)
     , m_wlanDataAllowed(true)
+    , m_waitingForInitialScan(false)
+    , m_initialScanDone(false)
     , m_adaptiveInterval(REQUEST_BASE_ADAPTIVE_INTERVAL)
     , m_keyFailureTime(KeyFailureTimeKey)
 {
@@ -111,6 +115,9 @@ MlsdbOnlineLocator::MlsdbOnlineLocator(QObject *parent)
     connect(&m_replyTimer, &QTimer::timeout, this, &MlsdbOnlineLocator::timeoutReply);
     m_replyTimer.setInterval(REQUEST_REPLY_TIMEOUT_INTERVAL);
     m_replyTimer.setSingleShot(true);
+    m_initialScanTimer.setInterval(INITIAL_WLAN_SCAN_TIMEOUT);
+    m_initialScanTimer.setSingleShot(true);
+    connect(&m_initialScanTimer, &QTimer::timeout, this, &MlsdbOnlineLocator::initialScanTimedOut);
 }
 
 MlsdbOnlineLocator::~MlsdbOnlineLocator()
@@ -120,7 +127,7 @@ MlsdbOnlineLocator::~MlsdbOnlineLocator()
 void MlsdbOnlineLocator::networkServicesChanged()
 {
     if (m_wlanDataAllowed) {
-        m_wlanServices = m_networkManager->getServices("wifi");
+        m_wlanServices = m_networkManager->getAvailableServices(QStringLiteral("wifi"));
         emit wlanChanged();
     }
     updateVpnState();
@@ -155,6 +162,53 @@ bool MlsdbOnlineLocator::wlanDataAllowed() const
     return m_wlanDataAllowed;
 }
 
+void MlsdbOnlineLocator::requestWlanScan()
+{
+    if (!m_wlanDataAllowed || !m_networkManager)
+        return;
+
+    const QDateTime now = QDateTime::currentDateTimeUtc();
+    if (m_lastWlanScan.isValid() && m_lastWlanScan.msecsTo(now) < WLAN_SCAN_INTERVAL)
+        return;
+
+    NetworkTechnology *wifi = m_networkManager->getTechnology(QStringLiteral("wifi"));
+    if (!wifi || !wifi->powered())
+        return;
+
+    // Saved services are not a scan. Neighboring access points appear, with
+    // BSSIDs, only after ConnMan scans. Hold the first lookup for that scan
+    // so it is not sent from saved networks alone.
+    qCDebug(lcGeoclueMlsdbOnline) << "Scanning Wi-Fi for BeaconDB";
+    m_lastWlanScan = now;
+    if (!m_initialScanDone)
+        m_waitingForInitialScan = true;
+    connect(wifi, &NetworkTechnology::scanFinished,
+            this, &MlsdbOnlineLocator::wlanScanFinished, Qt::UniqueConnection);
+    if (m_waitingForInitialScan)
+        m_initialScanTimer.start();
+    wifi->scan();
+}
+
+void MlsdbOnlineLocator::wlanScanFinished()
+{
+    if (!m_waitingForInitialScan)
+        return;
+
+    m_initialScanTimer.stop();
+    m_waitingForInitialScan = false;
+    m_initialScanDone = true;
+    if (m_wlanDataAllowed && m_networkManager) {
+        m_wlanServices = m_networkManager->getAvailableServices(QStringLiteral("wifi"));
+        emit wlanChanged();
+    }
+}
+
+void MlsdbOnlineLocator::initialScanTimedOut()
+{
+    qCDebug(lcGeoclueMlsdbOnline) << "Initial Wi-Fi scan timed out";
+    wlanScanFinished();
+}
+
 void MlsdbOnlineLocator::setWlanDataAllowed(bool allowed)
 {
     if (m_wlanDataAllowed != allowed) {
@@ -162,7 +216,7 @@ void MlsdbOnlineLocator::setWlanDataAllowed(bool allowed)
         emit wlanDataAllowedChanged();
     }
     if (m_wlanDataAllowed && m_wlanServices.isEmpty() && m_networkManager) {
-        m_wlanServices = m_networkManager->getServices("wifi");
+        m_wlanServices = m_networkManager->getAvailableServices(QStringLiteral("wifi"));
         emit wlanChanged();
     } else if (!m_wlanDataAllowed) {
         m_wlanServices.clear();
@@ -176,6 +230,11 @@ QPair<QDateTime, QVariantMap> MlsdbOnlineLocator::buildLocationQuery(
 {
     static bool waitForWlanInfo = true;
     const QDateTime currDt = QDateTime::currentDateTimeUtc();
+    if (m_waitingForInitialScan) {
+        qCDebug(lcGeoclueMlsdbOnline) << "Waiting for the initial Wi-Fi scan";
+        return qMakePair(QDateTime(), QVariantMap());
+    }
+
     QVariantMap map;
     map.unite(cellTowerFields(cells));
     map.unite(wlanAccessPointFields());
@@ -469,16 +528,16 @@ QVariantMap MlsdbOnlineLocator::wlanAccessPointFields() const
         QVariantList wifiInfoList;
         for (int i = 0; i < m_wlanServices.count(); i++) {
             NetworkService *service = m_wlanServices.at(i);
+            if (!service->available() || service->bssid().isEmpty()
+                    || service->bssid() == QLatin1String("00:00:00:00:00:00")) {
+                // A saved network that is not in range has no current BSSID.
+                // It is not an observation of where the phone is now.
+                continue;
+            }
             if (service->hidden() || service->name().endsWith(QStringLiteral("_nomap"))) {
                 // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html
                 // "Hidden WiFi networks and those whose SSID (clear text name) ends with the string
                 // _nomap must NOT be used for privacy reasons."
-                continue;
-            }
-            if (service->bssid().isEmpty()) {
-                // "Though in order to get a Bluetooth or WiFi based position estimate at least
-                // two networks need to be provided and for each the macAddress needs to be known."
-                // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#field-definition
                 continue;
             }
             QVariantMap wifiInfo;

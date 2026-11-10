@@ -45,6 +45,7 @@ public:
 
     bool wlanDataAllowed() const;
     void setWlanDataAllowed(bool allowed);
+    void requestWlanScan();
 
     QPair<QDateTime, QVariantMap> buildLocationQuery(
         const QList<MlsdbProvider::CellPositioningData> &cells,
@@ -64,6 +65,8 @@ private Q_SLOTS:
     void defaultVoiceModemChanged(const QString &modem);
     void requestOnlineLocationFinished(QNetworkReply *reply);
     void timeoutReply();
+    void wlanScanFinished();
+    void initialScanTimedOut();
 
 private:
     bool readServerResponseData(const QByteArray &data, QString *errorString);
@@ -93,6 +96,10 @@ private:
     bool m_vpnConnected;
 
     bool m_wlanDataAllowed;
+    bool m_waitingForInitialScan;
+    bool m_initialScanDone;
+    QDateTime m_lastWlanScan;
+    QTimer m_initialScanTimer;
 
     mutable quint32 m_adaptiveInterval;
     mutable QVector<qint64> m_queryTimestamps;
